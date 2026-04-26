@@ -2,9 +2,23 @@
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <title>Vibe Mirror AI</title>
+<meta name="description" content="Premium AI Beauty Stylist — Real-time face analysis, AR overlays, hyper-local recommendations."/>
 <meta name="theme-color" content="#0a0a0a"/>
+
+<!-- PWA — Install as App -->
+<link rel="manifest" href="/manifest.json"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Vibe Mirror AI"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+
+<!-- Open Graph -->
+<meta property="og:title" content="Vibe Mirror AI"/>
+<meta property="og:description" content="Your premium AI beauty stylist"/>
+<meta property="og:type" content="website"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -34,7 +48,17 @@
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Manrope',sans-serif; color:var(--text); }
+
+/* CRITICAL — lock entire viewport, no scroll whatsoever */
+html {
+  height: 100%; height: -webkit-fill-available;
+  overflow: hidden; position: fixed; width: 100%;
+}
+body {
+  height: 100%; height: -webkit-fill-available;
+  overflow: hidden; position: fixed; width: 100%;
+  background: var(--bg); font-family: 'Manrope', sans-serif; color: var(--text);
+}
 
 /* ── GLASS UTIL ── */
 .glass {
@@ -72,12 +96,35 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
    APP SHELL
 ═══════════════════════════════════════ */
 #app{
-  width:100%;max-width:430px;height:100vh;
-  margin:0 auto;display:flex;flex-direction:column;
-  position:relative;overflow:hidden;background:var(--bg);
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
 }
-.screen{display:none;flex-direction:column;flex:1;overflow:hidden;position:relative}
-.screen.active{display:flex}
+
+/* SCREEN ISOLATION — each screen is absolutely layered, only .active shows */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  z-index: 2;
+}
 
 /* Flash overlay */
 #flash{position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.06s}
@@ -90,7 +137,9 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
     radial-gradient(ellipse 65% 45% at 80% 15%, rgba(200,150,90,0.14) 0%,transparent 60%),
     radial-gradient(ellipse 55% 55% at 15% 85%, rgba(229,177,161,0.08) 0%,transparent 60%),
     var(--bg);
-  overflow-y:auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ob-header{
@@ -409,7 +458,6 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
    STYLIST SCREEN
 ═══════════════════════════════════════ */
 #stylistScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
-
 .sty-header{
   padding:52px 24px 18px;
   background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);
@@ -419,7 +467,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
 .sty-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-top:2px}
 .sty-sub{font-size:13px;color:var(--text-m);margin-top:3px}
 
-.sty-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+.sty-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding-bottom:90px;-webkit-overflow-scrolling:touch}
 
 /* Elite card */
 .elite{
@@ -502,8 +550,13 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
   padding:14px 16px;font-size:14px;font-weight:300;color:var(--text);line-height:1.6;
 }
 
-/* Chat input */
-.chat-iw{position:sticky;bottom:0;padding:10px 16px 2px;background:linear-gradient(to top,var(--bg),transparent)}
+/* Chat input — sticky bottom of stylist screen */
+.chat-iw{
+  flex-shrink:0;
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(to top,rgba(10,10,10,0.98) 60%,transparent);
+  border-top:0.5px solid rgba(255,255,255,0.08);
+}
 .chat-ir{
   display:flex;align-items:center;
   background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);
@@ -528,7 +581,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
 .shop-hdr{padding:52px 24px 16px;background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
 .shop-hdr h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:3px}
 .shop-hdr p{font-size:13px;color:var(--text-m)}
-.shop-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+.shop-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding-bottom:90px;-webkit-overflow-scrolling:touch}
 .filter-row{display:flex;gap:8px;padding:12px 24px;overflow-x:auto;scrollbar-width:none}
 .filter-row::-webkit-scrollbar{display:none}
 .fchip{
@@ -567,7 +620,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
 .prof-brand{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;letter-spacing:0.2em;color:var(--rose);text-shadow:0 0 10px rgba(229,177,161,0.4)}
 .prof-topbar .ms{font-family:'Material Symbols Outlined';font-size:21px;color:var(--rose);cursor:pointer}
 
-.prof-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+.prof-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding-bottom:90px;-webkit-overflow-scrolling:touch}
 
 .prof-hero{padding:4px 24px 32px;text-align:center}
 .prof-eye{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--rose);display:block;margin-bottom:14px}
@@ -653,13 +706,14 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
    BOTTOM NAV
 ═══════════════════════════════════════ */
 #bottomNav{
-  position:absolute;bottom:0;left:0;right:0;z-index:100;
+  position:absolute;bottom:0;left:0;right:0;z-index:200;
   display:flex;justify-content:space-around;align-items:center;
   padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
-  background:rgba(0,0,0,0.48);backdrop-filter:blur(40px);
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-top:0.5px solid rgba(255,255,255,0.16);
-  border-radius:18px 18px 0 0;
-  box-shadow:0 -8px 30px rgba(0,0,0,0.55);
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.6);
 }
 .ntab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;transition:all 0.2s;color:rgba(255,255,255,0.38)}
 .ntab:hover{color:rgba(255,255,255,0.65)}
@@ -686,6 +740,36 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
 .bg-ambient::before{content:'';position:absolute;top:-10%;right:-10%;width:50%;height:50%;background:rgba(229,177,161,0.08);border-radius:50%;filter:blur(120px)}
 .bg-ambient::after{content:'';position:absolute;bottom:-10%;left:-10%;width:50%;height:50%;background:rgba(99,247,255,0.04);border-radius:50%;filter:blur(120px)}
 </style>
+<script>
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install toast after 4s
+  setTimeout(() => {
+    if (deferredPrompt) {
+      const t = document.getElementById('toast');
+      if (t) {
+        t.innerHTML = '📲 Add to Home Screen for app experience';
+        t.classList.add('show');
+        t.style.cursor = 'pointer';
+        t.onclick = () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(() => { deferredPrompt = null; t.classList.remove('show'); });
+        };
+        setTimeout(() => t.classList.remove('show'), 5000);
+      }
+    }
+  }, 4000);
+});
+</script>
 </head>
 <body>
 <div id="app">
@@ -913,25 +997,11 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
     <div class="sty-title">Your Stylist</div>
     <div class="sty-sub">Pro consultations &amp; hyper-local tips</div>
   </div>
-  <div class="sty-scroll">
-    <div class="elite">
-      <div class="elite-pulse"></div>
-      <div class="elite-eye">Exclusive Access</div>
-      <div class="elite-title">Elite Stylist Session</div>
-      <div class="elite-sub">Book a 1:1 digital residency with celebrity stylist Marcus Vane.</div>
-      <button class="elite-btn" onclick="showToast('Booking Marcus Vane…')">BOOK SESSION</button>
-    </div>
+  <div class="sty-scroll" id="styScroll">
 
-    <div class="chat-area">
-      <div class="chat-u">How can I maintain my glow in Bhopal? The dry heat is making my skin feel parched.</div>
-      <div class="chat-ai">
-        <div class="chat-ai-av"><span class="material-symbols-outlined ms" style="font-size:14px">auto_awesome</span></div>
-        <div class="chat-ai-b">The dry heat in Bhopal requires biomimetic hydration. Standard creams evaporate too quickly in arid climates.<br/><br/>I recommend a high-molecular weight moisture barrier to lock in serum benefits.</div>
-      </div>
-    </div>
-
-    <div class="cons-list">
-      <div class="con-row" onclick="showToast('Connecting to Vibe Architect AI…')">
+    <!-- Consultant cards -->
+    <div class="cons-list" style="margin-top:16px;">
+      <div class="con-row" onclick="startChat('ai')">
         <div class="con-av">🤖<div class="con-dot"></div></div>
         <div class="con-info">
           <div class="con-name">Vibe Architect AI</div>
@@ -940,7 +1010,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
         </div>
         <div class="con-price">$1</div>
       </div>
-      <div class="con-row" onclick="showToast('Booking Sarah Jenkins…')">
+      <div class="con-row" onclick="startChat('sarah')">
         <div class="con-av">💁<div class="con-dot"></div></div>
         <div class="con-info">
           <div class="con-name">Sarah Jenkins</div>
@@ -951,27 +1021,40 @@ html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Man
       </div>
     </div>
 
+    <!-- AR status -->
     <div class="ar-status">
       <div class="ar-dot"></div>
-      <span class="ar-txt">Analyzing Climate Vectors: Bhopal, IN</span>
+      <span class="ar-txt" id="arStatusTxt">Analyzing Climate Vectors: Bhopal, IN</span>
     </div>
 
+    <!-- Live chat messages -->
+    <div class="chat-area" id="chatArea">
+      <div class="chat-ai">
+        <div class="chat-ai-av"><span class="material-symbols-outlined ms" style="font-size:14px">auto_awesome</span></div>
+        <div class="chat-ai-b">Namaste! I'm Vibe AI, your personal beauty stylist. Ask me anything about skincare, makeup, or beauty tips tailored for your city and skin type. ✨</div>
+      </div>
+    </div>
+
+    <!-- Apply card -->
     <div class="apply-card">
       <h3>Professional Consultant?</h3>
       <p>Duniya bhar ke clients ko advice dein. Apply karein aur apna career grow karein.</p>
       <button class="apply-btn" onclick="showToast('Apply for $1 — Coming soon!')">APPLY FOR $1</button>
     </div>
 
-    <div class="chat-iw">
-      <div class="chat-ir">
-        <input type="text" placeholder="Ask Vibe AI about your routine…"/>
-        <span class="material-symbols-outlined ms">mic</span>
-        <div class="chat-send" onclick="showToast('AI Stylist — Coming soon!')">
-          <span class="material-symbols-outlined ms">arrow_upward</span>
-        </div>
+  </div><!-- sty-scroll -->
+
+  <!-- Chat input — fixed at bottom of this screen -->
+  <div class="chat-iw" id="chatInputWrap">
+    <div class="chat-ir">
+      <input type="text" id="chatInput" placeholder="Ask Vibe AI about your routine…" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <span class="material-symbols-outlined ms" onclick="startVoiceInput()">mic</span>
+      <div class="chat-send" onclick="sendChat()">
+        <span class="material-symbols-outlined ms">arrow_upward</span>
       </div>
     </div>
   </div>
+
 </div><!-- stylistScreen -->
 
 <!-- ══════════════════════════════════════
