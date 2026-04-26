@@ -4,9 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Vibe Mirror AI</title>
-  <meta name="theme-color" content="#f5ede4"/>
+  <meta name="theme-color" content="#0d0a08"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
   <!-- MediaPipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -14,30 +14,26 @@
 
   <style>
     :root {
-      --cream:     #f5ede4;
-      --cream2:    #ede0d3;
-      --warm:      #e8d5c4;
-      --sand:      #c9a882;
-      --gold:      #b8895a;
-      --gold2:     #d4a96a;
-      --dark:      #1a1410;
-      --dark2:     #2e221a;
-      --text:      #1a1410;
-      --text-mid:  #5a4a3a;
-      --text-soft: #9a8070;
-      --card-bg:   rgba(255,252,248,0.92);
-      --nav-bg:    rgba(250,244,238,0.97);
-      --rose:      #d4756b;
-      --lilac:     #c4a8d4;
-      --mint:      #7dc4a8;
-      --score-hi:  #6dbf9e;
-      --score-lo:  #e8a87a;
-      --shadow-sm: 0 2px 12px rgba(90,60,30,0.10);
-      --shadow-md: 0 8px 32px rgba(90,60,30,0.14);
-      --shadow-lg: 0 20px 60px rgba(90,60,30,0.18);
-      --r-sm: 14px;
-      --r-md: 20px;
-      --r-lg: 28px;
+      --gold:       #c8965a;
+      --gold2:      #e8b87a;
+      --gold-glow:  rgba(200,150,90,0.35);
+      --gold-light: #f5d9a8;
+      --dark:       #0d0a08;
+      --dark2:      #1a1410;
+      --dark3:      #261e17;
+      --glass:      rgba(30,22,16,0.72);
+      --glass2:     rgba(255,248,240,0.08);
+      --glass3:     rgba(255,248,240,0.13);
+      --cream:      #f5ede4;
+      --cream2:     #ede0d3;
+      --text-w:     rgba(255,255,255,0.92);
+      --text-wm:    rgba(255,255,255,0.6);
+      --text-ws:    rgba(255,255,255,0.38);
+      --rose:       #d4756b;
+      --teal:       #5ec4b0;
+      --r-sm:       14px;
+      --r-md:       20px;
+      --r-lg:       28px;
     }
 
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -45,12 +41,12 @@
     html, body {
       height: 100%;
       overflow: hidden;
-      background: var(--cream);
-      font-family: 'Nunito', sans-serif;
-      color: var(--text);
+      background: var(--dark);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-w);
     }
 
-    /* ── APP SHELL ── */
+    /* ── APP SHELL ─────────────────────────────────────────────────────── */
     #app {
       width: 100%;
       max-width: 430px;
@@ -60,78 +56,298 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      background: var(--cream);
+      background: var(--dark);
     }
 
-    /* ── SCREENS ── */
+    /* ── SCREENS ─────────────────────────────────────────────────────────── */
     .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
     .screen.active { display: flex; }
 
-    /* ══════════════════════════════════════════
-       MIRROR SCREEN
-    ══════════════════════════════════════════ */
-    #mirrorScreen {
+    /* ── FLASH OVERLAY ─────────────────────────────────────────────────── */
+    #flashOverlay {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.08s ease;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       ONBOARDING SCREEN
+    ══════════════════════════════════════════════════════ */
+    #onboardScreen {
+      background: var(--dark);
       position: relative;
-      background: #0d0a08;
+      overflow-y: auto;
+      z-index: 200;
     }
 
-    /* Status bar area */
-    .status-bar {
+    .onboard-bg {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
-      padding: 12px 20px 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 70% 20%, rgba(200,150,90,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 20% 80%, rgba(200,100,80,0.08) 0%, transparent 60%),
+        var(--dark);
     }
 
-    .status-left { font-size: 0.82rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
-
-    .status-right {
+    .onboard-content {
+      position: relative;
+      z-index: 1;
+      padding: 60px 28px 40px;
+      min-height: 100vh;
       display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .status-right svg { width: 16px; height: 16px; fill: #fff; }
-
-    /* Top header bar */
-    .mirror-header {
-      position: absolute;
-      top: 44px; left: 0; right: 0;
-      z-index: 50;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
     }
 
-    .mirror-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.25rem;
+    .onboard-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .onboard-logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .onboard-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.03em;
+    }
+
+    .onboard-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--text-w);
+      margin-bottom: 14px;
+    }
+
+    .onboard-headline span {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .onboard-sub {
+      font-size: 0.9rem;
+      color: var(--text-wm);
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .onboard-step {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeUp 0.4s ease;
+    }
+    .onboard-step.active { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .onboard-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gold2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .onboard-input {
+      width: 100%;
+      background: var(--glass3);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(200,150,90,0.3);
+      border-radius: var(--r-sm);
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      color: var(--text-w);
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .onboard-input::placeholder { color: var(--text-ws); }
+    .onboard-input:focus {
+      border-color: rgba(200,150,90,0.6);
+      background: rgba(255,248,240,0.16);
+    }
+
+    .goal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .goal-card {
+      background: var(--glass2);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: var(--r-md);
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .goal-card:hover { border-color: rgba(200,150,90,0.4); }
+    .goal-card.selected {
+      border-color: var(--gold2);
+      background: rgba(200,150,90,0.15);
+    }
+
+    .goal-emoji { font-size: 1.8rem; margin-bottom: 8px; }
+    .goal-name  { font-size: 0.82rem; font-weight: 600; color: var(--text-w); margin-bottom: 3px; }
+    .goal-sub   { font-size: 0.68rem; color: var(--text-wm); }
+
+    .voice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .voice-card {
+      background: var(--glass2);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: var(--r-md);
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .voice-card.selected {
+      border-color: var(--gold2);
+      background: rgba(200,150,90,0.15);
+    }
+
+    .voice-icon { font-size: 2rem; margin-bottom: 8px; }
+    .voice-name { font-size: 0.88rem; font-weight: 600; color: var(--text-w); margin-bottom: 3px; }
+    .voice-sub  { font-size: 0.68rem; color: var(--text-wm); }
+
+    .onboard-btn {
+      margin-top: 8px;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
       font-weight: 600;
       color: #fff;
+      cursor: pointer;
       letter-spacing: 0.04em;
+      box-shadow: 0 8px 28px var(--gold-glow);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
+    .onboard-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px var(--gold-glow); }
+
+    .onboard-skip {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-ws);
+      cursor: pointer;
+      margin-top: 6px;
+      transition: color 0.2s;
+    }
+    .onboard-skip:hover { color: var(--text-wm); }
+
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .progress-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: all 0.3s;
+    }
+    .progress-dot.active {
+      width: 22px;
+      border-radius: 3px;
+      background: var(--gold2);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MIRROR SCREEN
+    ══════════════════════════════════════════════════════ */
+    #mirrorScreen {
+      position: relative;
+      background: #000;
+      flex: 1;
+    }
+
+    /* Gamification bar */
+    .gamebar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 60;
+      padding: 14px 16px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+    }
+
+    .gamebar-stats {
+      display: flex;
+      gap: 6px;
+    }
+
+    .gamebar-chip {
+      background: rgba(20,14,10,0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(200,150,90,0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .gamebar-chip .chip-icon { font-size: 0.85rem; }
+    .gamebar-chip .chip-val  { color: var(--gold2); font-weight: 700; }
+    .gamebar-chip .chip-label { color: var(--text-wm); }
+
+    .gamebar-right { display: flex; gap: 8px; align-items: center; }
 
     .icon-btn {
       width: 36px; height: 36px;
-      background: rgba(255,255,255,0.18);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(20,14,10,0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(200,150,90,0.25);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: #fff;
       font-size: 0.9rem;
-      transition: background 0.2s;
+      transition: background 0.2s, border-color 0.2s;
     }
-    .icon-btn:hover { background: rgba(255,255,255,0.28); }
+    .icon-btn:hover { background: rgba(200,150,90,0.2); border-color: rgba(200,150,90,0.5); }
 
-    /* Camera / video */
+    /* Camera */
     #videoEl {
       width: 100%;
       height: 100%;
@@ -150,7 +366,17 @@
       z-index: 20;
     }
 
-    /* Camera off placeholder */
+    /* Dynamic Aura overlay */
+    #auraCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 18;
+    }
+
+    /* Camera placeholder */
     #camPlaceholder {
       position: absolute;
       inset: 0;
@@ -160,10 +386,10 @@
       align-items: center;
       justify-content: center;
       gap: 14px;
-      background: linear-gradient(160deg, #1a1410 0%, #2e2218 100%);
+      background: radial-gradient(ellipse at center, #1e1510 0%, #0d0a08 100%);
     }
-    #camPlaceholder .cam-icon { font-size: 3.5rem; opacity: 0.35; }
-    #camPlaceholder p { color: rgba(255,255,255,0.45); font-size: 0.88rem; text-align: center; max-width: 200px; line-height: 1.6; }
+    #camPlaceholder .cam-icon { font-size: 3.5rem; opacity: 0.3; }
+    #camPlaceholder p { color: var(--text-wm); font-size: 0.88rem; text-align: center; max-width: 200px; line-height: 1.6; }
     #camPlaceholder.hidden { display: none; }
 
     /* AR Guide pill */
@@ -171,410 +397,469 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) translateY(-48%);
+      transform: translate(-50%, -50%) translateY(-52%);
       z-index: 30;
-      background: rgba(255,255,255,0.18);
+      background: rgba(20,14,10,0.65);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(200,150,90,0.35);
       border-radius: 20px;
       padding: 6px 16px;
       font-size: 0.72rem;
-      color: #fff;
+      color: var(--text-w);
       font-weight: 600;
       letter-spacing: 0.08em;
       opacity: 0;
-      transition: opacity 0.5s;
+      transition: opacity 0.6s;
     }
     .ar-guide-pill.visible { opacity: 1; }
 
-    /* Bottom panel — slides up over camera */
+    /* Greeting pill */
+    .greeting-pill {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      white-space: nowrap;
+      background: rgba(20,14,10,0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(200,150,90,0.4);
+      border-radius: 24px;
+      padding: 7px 18px;
+      font-size: 0.78rem;
+      color: var(--gold-light);
+      font-weight: 500;
+      display: none;
+      animation: fadeUp 0.5s ease;
+    }
+
+    /* Bottom sliding panel */
     .mirror-panel {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       z-index: 40;
-      background: linear-gradient(to top, rgba(10,7,5,0.96) 0%, rgba(10,7,5,0.82) 70%, transparent 100%);
-      padding: 0 16px 100px; /* bottom: nav height */
+      background: linear-gradient(to top, rgba(10,7,5,0.97) 40%, rgba(10,7,5,0.8) 75%, transparent 100%);
+      padding: 0 16px 88px;
     }
 
-    /* Vibe score row */
-    .vibe-row {
+    /* Score row */
+    .score-row {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      padding: 20px 4px 12px;
+      padding: 24px 4px 10px;
     }
 
-    .vibe-score-block {}
+    .score-block {}
 
-    .vibe-score-num {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2.4rem;
-      font-weight: 600;
+    .score-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      font-weight: 700;
       color: #fff;
       line-height: 1;
     }
 
-    .vibe-score-label {
-      font-size: 0.68rem;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.12em;
+    .score-label {
+      font-size: 0.65rem;
+      color: var(--text-ws);
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       margin-top: 3px;
     }
 
-    .vibe-bar-wrap { flex: 1; margin: 0 16px 6px; }
-    .vibe-bar-track {
-      height: 6px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .vibe-bar-fill {
-      height: 100%;
-      border-radius: 6px;
-      background: linear-gradient(90deg, var(--score-lo), var(--gold2), var(--score-hi));
-      transition: width 1.2s cubic-bezier(0.34,1.3,0.64,1);
-      width: 0%;
-    }
+    .score-right { display: flex; gap: 10px; align-items: flex-end; padding-bottom: 4px; }
 
-    .vibe-sound-btn {
-      width: 32px; height: 32px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin-bottom: 4px;
-      transition: background 0.2s;
-    }
-    .vibe-sound-btn:hover { background: rgba(255,255,255,0.22); }
-
-    /* Compliment text */
-    .compliment-text {
-      font-size: 0.9rem;
-      color: rgba(255,255,255,0.88);
-      line-height: 1.55;
-      padding: 0 4px 14px;
-      min-height: 44px;
-    }
-
-    .compliment-text .brand-tag {
-      font-size: 0.72rem;
+    .symmetry-chip {
+      background: rgba(200,150,90,0.18);
+      border: 1px solid rgba(200,150,90,0.35);
+      border-radius: 10px;
+      padding: 5px 10px;
+      font-size: 0.65rem;
+      font-weight: 600;
       color: var(--gold2);
-      font-weight: 700;
       letter-spacing: 0.06em;
     }
 
-    /* Location badge */
-    .location-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.68rem;
-      color: rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.09);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      padding: 4px 10px;
+    .score-bar-wrap { padding: 0 4px 12px; }
+    .score-bar-track {
+      height: 5px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--rose), var(--gold2), var(--teal));
+      transition: width 1.4s cubic-bezier(0.34,1.3,0.64,1);
+      width: 0%;
+    }
+
+    /* Compliment card */
+    .compliment-card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(200,150,90,0.2);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
       margin-bottom: 12px;
     }
 
-    /* Product cards horizontal scroll */
-    .products-scroll {
+    .compliment-tag {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold2);
+      margin-bottom: 6px;
       display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .compliment-text {
+      font-size: 0.88rem;
+      color: var(--text-w);
+      line-height: 1.55;
+      min-height: 40px;
+    }
+
+    /* Products scroll */
+    .products-scroll {
+      display: none;
+      flex-direction: row;
       gap: 10px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
       scrollbar-width: none;
     }
     .products-scroll::-webkit-scrollbar { display: none; }
 
     .product-card {
       flex-shrink: 0;
-      width: 148px;
-      background: var(--card-bg);
+      width: 144px;
+      background: rgba(26,20,14,0.92);
+      border: 1px solid rgba(200,150,90,0.2);
       border-radius: var(--r-sm);
       overflow: hidden;
-      box-shadow: var(--shadow-md);
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
-    .product-card:hover { transform: translateY(-3px); }
+    .product-card:hover { transform: translateY(-3px); border-color: rgba(200,150,90,0.45); }
 
     .product-img-area {
-      height: 88px;
-      background: linear-gradient(135deg, var(--cream2), var(--warm));
+      height: 84px;
+      background: linear-gradient(135deg, #261e17, #1a1410);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       position: relative;
     }
 
     .product-platform-dot {
       position: absolute;
-      top: 8px; right: 8px;
-      font-size: 0.58rem;
+      top: 7px; right: 7px;
+      font-size: 0.56rem;
       font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 5px;
       letter-spacing: 0.04em;
       color: #fff;
     }
-    .dot-nykaa  { background: #fc2779; }
-    .dot-amazon { background: #f90; color: #111; }
-    .dot-myntra { background: #ff3f6c; }
-    .dot-purplle{ background: #7c3aed; }
+    .dot-nykaa   { background: #fc2779; }
+    .dot-amazon  { background: #f90; color: #111; }
+    .dot-myntra  { background: #ff3f6c; }
+    .dot-purplle { background: #7c3aed; }
 
     .product-body { padding: 10px 10px 12px; }
-
-    .product-brand {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-soft);
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .product-name {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.3;
-      margin-bottom: 3px;
-    }
-
-    .product-shade {
-      font-size: 0.68rem;
-      color: var(--text-soft);
-      margin-bottom: 8px;
-    }
-
-    .product-price {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--dark2);
-      margin-bottom: 8px;
-    }
-
+    .product-brand { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-ws); font-weight: 700; margin-bottom: 2px; }
+    .product-name  { font-size: 0.76rem; font-weight: 600; color: var(--text-w); line-height: 1.3; margin-bottom: 3px; }
+    .product-shade { font-size: 0.66rem; color: var(--text-wm); margin-bottom: 8px; }
+    .product-price { font-size: 0.76rem; font-weight: 700; color: var(--gold2); margin-bottom: 8px; }
     .shop-btn {
       width: 100%;
-      padding: 7px 0;
+      padding: 6px 0;
       background: linear-gradient(135deg, var(--gold), var(--gold2));
       color: #fff;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       cursor: pointer;
       transition: opacity 0.2s;
     }
-    .shop-btn:hover { opacity: 0.88; }
+    .shop-btn:hover { opacity: 0.85; }
 
-    /* Hype button */
-    .hype-area {
-      padding: 14px 4px 0;
+    /* Action buttons */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 6px 4px 0;
     }
 
-    #hypeBtn {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
+    .action-btn {
+      padding: 13px 10px;
       border: none;
       border-radius: var(--r-sm);
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
       font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.06em;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .action-btn:hover { transform: translateY(-2px); }
+    .action-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #fff;
+      box-shadow: 0 6px 20px var(--gold-glow);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 6px 24px rgba(184,137,90,0.4);
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
     }
-    #hypeBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(184,137,90,0.5); }
-    #hypeBtn:active:not(:disabled) { transform: translateY(0); }
-    #hypeBtn:disabled { opacity: 0.55; cursor: not-allowed; }
-    #hypeBtn .shimmer {
+    .btn-primary .shimmer {
       position: absolute; inset: 0;
       background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.28) 50%, transparent 65%);
       transform: translateX(-100%);
     }
-    #hypeBtn:hover:not(:disabled) .shimmer { transform: translateX(100%); transition: transform 0.55s; }
+    .btn-primary:hover:not(:disabled) .shimmer { transform: translateX(100%); transition: transform 0.55s; }
 
-    /* Loading spinner on button */
-    .btn-spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+    .btn-secondary {
+      background: var(--glass3);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(200,150,90,0.3);
+      color: var(--text-w);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Occasion input */
     .occasion-wrap {
       position: absolute;
-      top: 92px; left: 0; right: 0;
+      top: 114px; left: 0; right: 0;
       z-index: 50;
       padding: 0 16px;
     }
 
     .occasion-input {
       width: 100%;
-      background: rgba(255,255,255,0.15);
+      background: rgba(10,7,5,0.65);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.25);
+      border: 1px solid rgba(200,150,90,0.25);
       border-radius: 30px;
       padding: 9px 18px;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 0.82rem;
-      color: #fff;
+      color: var(--text-w);
       outline: none;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s;
     }
-    .occasion-input::placeholder { color: rgba(255,255,255,0.5); }
-    .occasion-input:focus {
-      border-color: rgba(212,169,106,0.6);
-      background: rgba(255,255,255,0.2);
-    }
+    .occasion-input::placeholder { color: var(--text-ws); }
+    .occasion-input:focus { border-color: rgba(200,150,90,0.55); }
 
-    /* ══════════════════════════════════════════
-       GUIDE SCREEN
-    ══════════════════════════════════════════ */
-    #guideScreen {
-      background: var(--cream);
+    /* Loading spinner */
+    .btn-spinner {
+      display: inline-block;
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══════════════════════════════════════════════════════
+       STYLIST SCREEN (was Guide)
+    ══════════════════════════════════════════════════════ */
+    #stylistScreen {
+      background: var(--dark);
       overflow-y: auto;
     }
 
-    .guide-header {
-      padding: 56px 20px 20px;
-      background: linear-gradient(160deg, var(--warm) 0%, var(--cream) 100%);
+    .stylist-header {
+      padding: 56px 20px 24px;
+      background: linear-gradient(160deg, #1e1410 0%, var(--dark) 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    .guide-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.8rem;
+    .stylist-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
       font-weight: 600;
-      color: var(--dark);
+      color: var(--text-w);
       margin-bottom: 4px;
     }
+    .stylist-sub { font-size: 0.82rem; color: var(--text-wm); }
 
-    .guide-header p { font-size: 0.82rem; color: var(--text-soft); }
+    /* Pro consultant card */
+    .pro-card {
+      margin: 16px;
+      background: linear-gradient(135deg, rgba(200,150,90,0.18), rgba(200,120,80,0.1));
+      border: 1px solid rgba(200,150,90,0.35);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    .guide-cards { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .pro-card::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(200,150,90,0.15), transparent 70%);
+    }
+
+    .pro-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--gold2);
+      background: rgba(200,150,90,0.18);
+      border: 1px solid rgba(200,150,90,0.35);
+      border-radius: 20px;
+      padding: 3px 10px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .pro-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--text-w);
+      margin-bottom: 6px;
+    }
+
+    .pro-sub { font-size: 0.82rem; color: var(--text-wm); line-height: 1.55; margin-bottom: 16px; }
+
+    .pro-consultants { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+    .consultant-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .consultant-row:hover { background: rgba(255,255,255,0.09); }
+
+    .consultant-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #e8a060);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .consultant-online-dot {
+      position: absolute;
+      bottom: 1px; right: 1px;
+      width: 10px; height: 10px;
+      background: #4ade80;
+      border: 2px solid var(--dark3);
+      border-radius: 50%;
+    }
+
+    .consultant-info { flex: 1; }
+    .consultant-name { font-size: 0.88rem; font-weight: 600; color: var(--text-w); }
+    .consultant-role { font-size: 0.72rem; color: var(--text-wm); }
+    .consultant-status { font-size: 0.62rem; font-weight: 700; color: #4ade80; letter-spacing: 0.08em; }
+
+    .consultant-price {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-w);
+    }
+
+    .pro-cta {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .pro-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* Guide tips */
+    .guide-section { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
     .guide-card {
-      background: var(--card-bg);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: var(--r-md);
-      padding: 18px;
-      box-shadow: var(--shadow-sm);
+      padding: 16px;
       display: flex;
       gap: 14px;
       align-items: flex-start;
     }
 
     .guide-icon {
-      width: 46px; height: 46px;
-      border-radius: var(--r-sm);
+      width: 44px; height: 44px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       flex-shrink: 0;
     }
-    .guide-icon.gold   { background: linear-gradient(135deg, #fde8c0, #f5c97a); }
-    .guide-icon.rose   { background: linear-gradient(135deg, #fde0e0, #f5a0a0); }
-    .guide-icon.lilac  { background: linear-gradient(135deg, #ecddf5, #d4aee8); }
-    .guide-icon.mint   { background: linear-gradient(135deg, #d4f0e8, #7dc4a8); }
+    .guide-icon.gold  { background: linear-gradient(135deg, rgba(200,150,90,0.3), rgba(200,150,90,0.1)); }
+    .guide-icon.rose  { background: linear-gradient(135deg, rgba(212,117,107,0.3), rgba(212,117,107,0.1)); }
+    .guide-icon.teal  { background: linear-gradient(135deg, rgba(94,196,176,0.3), rgba(94,196,176,0.1)); }
+    .guide-icon.lilac { background: linear-gradient(135deg, rgba(180,140,220,0.3), rgba(180,140,220,0.1)); }
 
-    .guide-card-body h4 { font-size: 0.9rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
-    .guide-card-body p  { font-size: 0.78rem; color: var(--text-soft); line-height: 1.55; }
+    .guide-card-body h4 { font-size: 0.88rem; font-weight: 600; color: var(--text-w); margin-bottom: 4px; }
+    .guide-card-body p  { font-size: 0.76rem; color: var(--text-wm); line-height: 1.55; }
 
-    /* ══════════════════════════════════════════
-       OCCASION SCREEN
-    ══════════════════════════════════════════ */
-    #occasionScreen {
-      background: var(--cream);
-      overflow-y: auto;
-    }
-
-    .occ-header {
-      padding: 56px 20px 20px;
-      background: linear-gradient(160deg, #f0e0d0 0%, var(--cream) 100%);
-    }
-    .occ-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: var(--dark);
-      margin-bottom: 4px;
-    }
-    .occ-header p { font-size: 0.82rem; color: var(--text-soft); }
-
-    .occ-grid { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .occ-card {
-      background: var(--card-bg);
-      border-radius: var(--r-md);
-      padding: 20px 16px;
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-align: center;
-      border: 2px solid transparent;
-    }
-    .occ-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-    .occ-card.selected { border-color: var(--gold); background: linear-gradient(135deg, #fdf5ec, #fff8f0); }
-
-    .occ-emoji { font-size: 2rem; margin-bottom: 8px; }
-    .occ-name  { font-size: 0.82rem; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
-    .occ-sub   { font-size: 0.7rem; color: var(--text-soft); line-height: 1.4; }
-
-    .occ-apply-btn {
-      margin: 16px;
-      padding: 14px;
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
-      border: none;
-      border-radius: var(--r-sm);
-      color: #fff;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(184,137,90,0.35);
-      transition: transform 0.15s;
-    }
-    .occ-apply-btn:hover { transform: translateY(-2px); }
-
-    /* ══════════════════════════════════════════
+    /* ══════════════════════════════════════════════════════
        SHOP SCREEN
-    ══════════════════════════════════════════ */
+    ══════════════════════════════════════════════════════ */
     #shopScreen {
-      background: var(--cream);
+      background: var(--dark);
       overflow-y: auto;
     }
 
     .shop-header {
-      padding: 56px 20px 16px;
-      background: linear-gradient(160deg, #f0dece 0%, var(--cream) 100%);
+      padding: 56px 20px 18px;
+      background: linear-gradient(160deg, #1e1410 0%, var(--dark) 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
+
     .shop-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.8rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
       font-weight: 600;
-      color: var(--dark);
+      color: var(--text-w);
       margin-bottom: 4px;
     }
-    .shop-header p { font-size: 0.82rem; color: var(--text-soft); }
+    .shop-header p { font-size: 0.82rem; color: var(--text-wm); }
 
     .shop-filter-row {
       display: flex;
@@ -592,192 +877,258 @@
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      border: 1.5px solid var(--warm);
-      color: var(--text-mid);
-      background: #fff;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      color: var(--text-wm);
+      background: transparent;
       transition: all 0.2s;
     }
     .filter-chip.active {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #fff;
+      border-color: var(--gold2);
+      color: var(--gold2);
+      background: rgba(200,150,90,0.15);
     }
 
-    .shop-grid { padding: 8px 16px 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 8px 16px 100px;
+    }
 
     .shop-product-card {
-      background: var(--card-bg);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: var(--r-md);
       overflow: hidden;
-      box-shadow: var(--shadow-sm);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
-    .shop-product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .shop-product-card:hover { transform: translateY(-3px); border-color: rgba(200,150,90,0.35); }
 
     .shop-img-area {
       height: 110px;
-      background: linear-gradient(135deg, var(--cream2), var(--warm));
+      background: linear-gradient(135deg, #1e1810, #150f0a);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 2.8rem;
       position: relative;
     }
+
     .shop-badge {
       position: absolute;
       top: 8px; left: 8px;
-      font-size: 0.58rem;
+      font-size: 0.6rem;
       font-weight: 700;
-      background: var(--rose);
-      color: #fff;
       padding: 3px 7px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #fff;
+      letter-spacing: 0.04em;
     }
+
     .shop-heart {
       position: absolute;
       top: 8px; right: 8px;
       font-size: 1.1rem;
       cursor: pointer;
     }
+
     .shop-card-body { padding: 12px; }
-    .shop-brand  { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); font-weight: 700; margin-bottom: 2px; }
-    .shop-name   { font-size: 0.82rem; font-weight: 600; color: var(--dark); margin-bottom: 2px; line-height: 1.3; }
-    .shop-price  { font-size: 0.82rem; font-weight: 700; color: var(--dark2); margin-bottom: 8px; }
+    .shop-brand { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-ws); font-weight: 700; margin-bottom: 3px; }
+    .shop-name  { font-size: 0.78rem; font-weight: 600; color: var(--text-w); line-height: 1.3; margin-bottom: 4px; }
+    .shop-price { font-size: 0.82rem; font-weight: 700; color: var(--gold2); margin-bottom: 10px; }
+
     .shop-buy {
       width: 100%;
       padding: 8px;
-      background: var(--dark);
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none;
+      border-radius: 8px;
       color: #fff;
       font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s;
     }
-    .shop-buy:hover { background: var(--dark2); }
+    .shop-buy:hover { opacity: 0.85; }
 
-    /* ══════════════════════════════════════════
+    /* ══════════════════════════════════════════════════════
        PROFILE SCREEN
-    ══════════════════════════════════════════ */
+    ══════════════════════════════════════════════════════ */
     #profileScreen {
-      background: var(--cream);
+      background: var(--dark);
       overflow-y: auto;
     }
 
     .profile-hero {
-      padding: 56px 20px 24px;
-      background: linear-gradient(160deg, var(--warm) 0%, var(--cream) 100%);
+      padding: 56px 20px 28px;
+      background: linear-gradient(160deg, #1e1410 0%, var(--dark) 100%);
       text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
     .profile-avatar {
-      width: 80px; height: 80px;
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      width: 72px; height: 72px;
       border-radius: 50%;
-      margin: 0 auto 12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 2rem;
-      box-shadow: 0 8px 24px rgba(184,137,90,0.3);
+      margin: 0 auto 14px;
+      box-shadow: 0 0 0 3px rgba(200,150,90,0.2), 0 8px 28px var(--gold-glow);
     }
 
     .profile-name {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       font-weight: 600;
-      color: var(--dark);
+      color: var(--text-w);
       margin-bottom: 4px;
     }
 
-    .profile-sub { font-size: 0.78rem; color: var(--text-soft); }
+    .profile-sub { font-size: 0.78rem; color: var(--text-wm); margin-bottom: 20px; }
 
     .profile-stats {
       display: flex;
       justify-content: center;
       gap: 0;
-      margin-top: 20px;
-      background: var(--card-bg);
-      border-radius: var(--r-md);
-      box-shadow: var(--shadow-sm);
     }
 
     .stat-box {
       flex: 1;
-      padding: 14px 8px;
-      text-align: center;
-      border-right: 1px solid rgba(0,0,0,0.06);
+      padding: 12px 8px;
+      border-right: 1px solid rgba(255,255,255,0.08);
     }
     .stat-box:last-child { border-right: none; }
-    .stat-num  { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--gold); }
-    .stat-label{ font-size: 0.65rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold2);
+    }
+    .stat-label { font-size: 0.68rem; color: var(--text-wm); margin-top: 2px; }
+
+    .glow-score-card {
+      margin: 16px;
+      background: linear-gradient(135deg, rgba(200,150,90,0.15), rgba(200,100,80,0.08));
+      border: 1px solid rgba(200,150,90,0.3);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gsc-eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-wm);
+      margin-bottom: 8px;
+    }
+
+    .gsc-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-w);
+      margin-bottom: 4px;
+    }
+
+    .gsc-sub { font-size: 0.78rem; color: var(--text-wm); margin-bottom: 16px; }
+
+    .gsc-wins { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+
+    .gsc-win {
+      background: rgba(255,255,255,0.06);
+      border-radius: var(--r-sm);
+      padding: 12px;
+    }
+
+    .gsc-win-icon { font-size: 1.3rem; margin-bottom: 5px; }
+    .gsc-win-name { font-size: 0.78rem; font-weight: 600; color: var(--text-w); margin-bottom: 3px; }
+    .gsc-win-desc { font-size: 0.68rem; color: var(--text-wm); line-height: 1.4; }
+
+    .share-ig-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(90deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      border: none;
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .share-ig-btn:hover { opacity: 0.88; }
 
     .profile-section { padding: 16px; }
     .profile-section-title {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-soft);
       font-weight: 700;
-      margin-bottom: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-ws);
+      margin: 12px 0 8px;
     }
 
+    .skin-journal {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--r-md);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .sj-title { font-size: 0.85rem; font-weight: 600; color: var(--text-w); margin-bottom: 12px; }
+
+    .sj-bars { display: flex; flex-direction: column; gap: 10px; }
+
+    .sj-row { display: flex; align-items: center; gap: 10px; }
+    .sj-label { font-size: 0.72rem; color: var(--text-wm); width: 68px; }
+    .sj-track { flex: 1; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+    .sj-fill  { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 3px; transition: width 1s ease; }
+    .sj-val   { font-size: 0.72rem; font-weight: 600; color: var(--gold2); width: 24px; text-align: right; }
+
     .profile-row {
-      background: var(--card-bg);
-      border-radius: var(--r-sm);
-      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      border-radius: var(--r-sm);
       margin-bottom: 8px;
-      box-shadow: var(--shadow-sm);
       cursor: pointer;
+      transition: background 0.2s;
     }
+    .profile-row:hover { background: rgba(255,255,255,0.07); }
 
     .profile-row-left { display: flex; align-items: center; gap: 12px; }
-    .profile-row-icon { font-size: 1.2rem; }
-    .profile-row-text { font-size: 0.85rem; font-weight: 600; color: var(--dark); }
-    .profile-row-arrow { color: var(--text-soft); font-size: 0.85rem; }
+    .profile-row-icon { font-size: 1.1rem; }
+    .profile-row-text { font-size: 0.86rem; color: var(--text-w); }
+    .profile-row-arrow { color: var(--text-ws); font-size: 1.2rem; }
 
-    /* Skin journal preview */
-    .skin-journal {
-      background: var(--card-bg);
-      border-radius: var(--r-md);
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 12px;
-    }
-
-    .sj-title { font-size: 0.85rem; font-weight: 700; color: var(--dark); margin-bottom: 12px; }
-
-    .sj-bars { display: flex; flex-direction: column; gap: 8px; }
-
-    .sj-row { display: flex; align-items: center; gap: 10px; }
-    .sj-label { font-size: 0.72rem; color: var(--text-soft); width: 72px; flex-shrink: 0; }
-    .sj-track { flex: 1; height: 6px; background: var(--cream2); border-radius: 6px; overflow: hidden; }
-    .sj-fill   { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
-    .sj-val    { font-size: 0.72rem; font-weight: 700; color: var(--gold); width: 28px; text-align: right; }
-
-    /* ══════════════════════════════════════════
+    /* ══════════════════════════════════════════════════════
        BOTTOM NAV
-    ══════════════════════════════════════════ */
+    ══════════════════════════════════════════════════════ */
     #bottomNav {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       z-index: 100;
-      height: 82px;
-      background: var(--nav-bg);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(180,140,100,0.15);
+      background: rgba(13,10,8,0.92);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(200,150,90,0.15);
       display: flex;
-      align-items: flex-start;
-      padding-top: 8px;
-      box-shadow: 0 -8px 32px rgba(90,60,30,0.08);
+      padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
     .nav-tab {
@@ -786,251 +1137,417 @@
       flex-direction: column;
       align-items: center;
       gap: 4px;
+      padding: 10px 6px 12px;
       cursor: pointer;
-      padding: 4px 0;
       transition: opacity 0.2s;
     }
 
-    .nav-icon {
-      width: 28px; height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      position: relative;
-    }
+    .nav-icon { position: relative; }
+    .nav-icon-inner { font-size: 1.3rem; display: block; transition: transform 0.2s; }
+    .nav-tab:hover .nav-icon-inner { transform: scale(1.12); }
 
-    .nav-tab.active .nav-icon-inner {
-      background: var(--gold);
-      border-radius: 10px;
-      padding: 5px;
-    }
-
-    .nav-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: var(--text-soft);
-      letter-spacing: 0.04em;
-    }
-
-    .nav-tab.active .nav-label { color: var(--gold); }
-
-    /* Active tab center highlight */
     .nav-active-dot {
       position: absolute;
-      bottom: -8px;
-      left: 50%;
+      bottom: -6px; left: 50%;
       transform: translateX(-50%);
       width: 4px; height: 4px;
-      background: var(--gold);
+      background: var(--gold2);
       border-radius: 50%;
       opacity: 0;
       transition: opacity 0.2s;
     }
+
     .nav-tab.active .nav-active-dot { opacity: 1; }
 
-    /* Animations */
-    @keyframes fadeIn   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes slideUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .nav-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-ws);
+      transition: color 0.2s;
+    }
+    .nav-tab.active .nav-label { color: var(--gold2); }
 
-    .fade-in  { animation: fadeIn  0.4s ease forwards; }
-    .slide-up { animation: slideUp 0.35s ease forwards; }
+    /* ══════════════════════════════════════════════════════
+       GLOW SCORE SHARE OVERLAY
+    ══════════════════════════════════════════════════════ */
+    #glowShareOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    #glowShareOverlay.active { display: flex; }
 
-    .d1 { animation-delay: 0.05s; opacity:0; }
-    .d2 { animation-delay: 0.12s; opacity:0; }
-    .d3 { animation-delay: 0.19s; opacity:0; }
-    .d4 { animation-delay: 0.26s; opacity:0; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
 
-    /* Toasts */
-    #toast {
+    .glow-share-card {
+      width: 100%;
+      max-width: 340px;
+      background: linear-gradient(145deg, #1e1410, #261c14);
+      border: 1px solid rgba(200,150,90,0.4);
+      border-radius: var(--r-lg);
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.4s cubic-bezier(0.34,1.3,0.64,1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+
+    .glow-share-card::before {
+      content: '';
       position: absolute;
-      top: 100px; left: 50%; transform: translateX(-50%);
-      background: rgba(30,20,10,0.9);
-      backdrop-filter: blur(10px);
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(200,150,90,0.18), transparent 70%);
+    }
+
+    .gsc-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.88rem;
+      color: var(--gold2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .gsc-score-ring {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      background: linear-gradient(var(--dark2), var(--dark2)) padding-box,
+                  linear-gradient(135deg, var(--gold), var(--gold2)) border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .gsc-score-label { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--text-wm); text-transform: uppercase; }
+    .gsc-score-num   { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: var(--gold2); line-height: 1; }
+    .gsc-peak-label  { font-size: 0.58rem; color: var(--teal); letter-spacing: 0.1em; margin-top: 2px; }
+
+    .gsc-compliment {
+      font-style: italic;
+      font-size: 0.86rem;
+      color: var(--text-w);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      padding: 0 8px;
+    }
+
+    .share-overlay-btns { display: flex; gap: 10px; }
+
+    .share-ig-btn-sm {
+      flex: 1;
+      padding: 12px;
+      background: linear-gradient(90deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      border: none;
+      border-radius: var(--r-sm);
       color: #fff;
-      font-size: 0.8rem;
-      padding: 10px 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .share-ig-btn-sm:hover { opacity: 0.88; }
+
+    .share-close-btn {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--r-sm);
+      color: var(--text-w);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .share-close-btn:hover { background: rgba(255,255,255,0.13); }
+
+    /* ══════════════════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════════════════ */
+    #toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(26,20,14,0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(200,150,90,0.3);
       border-radius: 20px;
+      padding: 9px 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-w);
       white-space: nowrap;
-      z-index: 200;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 500;
       pointer-events: none;
     }
-    #toast.show { opacity: 1; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ── MIRROR SCREEN ── -->
-  <div id="mirrorScreen" class="screen active">
-    <!-- Status bar -->
-    <div class="status-bar">
-      <span class="status-left">9:41</span>
-      <div class="status-right">
-        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+  <!-- Flash overlay -->
+  <div id="flashOverlay"></div>
+
+  <!-- ══ ONBOARDING SCREEN ══ -->
+  <div id="onboardScreen" class="screen active">
+    <div class="onboard-bg"></div>
+    <div class="onboard-content">
+
+      <div class="onboard-logo">
+        <div class="onboard-logo-icon">🪞</div>
+        <div class="onboard-logo-text">VIBE MIRROR AI</div>
+      </div>
+
+      <div class="onboard-headline">Your skin<br/>deserves its<br/><span>spotlight.</span></div>
+      <div class="onboard-sub">Premium AI beauty stylist. Real-time face analysis. Hyper-local recommendations. All on-device privacy.</div>
+
+      <div class="progress-dots">
+        <div class="progress-dot active" id="dot0"></div>
+        <div class="progress-dot" id="dot1"></div>
+        <div class="progress-dot" id="dot2"></div>
+      </div>
+
+      <!-- Step 1: Name -->
+      <div class="onboard-step active" id="step0">
+        <div class="onboard-label">✦ Your Name</div>
+        <input class="onboard-input" id="nameInput" type="text" placeholder="What should Aura call you?" maxlength="30" autocomplete="off"/>
+        <button class="onboard-btn" onclick="nextOnboardStep()">Continue →</button>
+        <div class="onboard-skip" onclick="skipOnboarding()">Skip for now</div>
+      </div>
+
+      <!-- Step 2: Goal -->
+      <div class="onboard-step" id="step1">
+        <div class="onboard-label">✦ Your Beauty Goal</div>
+        <div class="goal-grid">
+          <div class="goal-card" onclick="selectGoal(this,'Glow & Radiance')">
+            <div class="goal-emoji">✨</div>
+            <div class="goal-name">Glow</div>
+            <div class="goal-sub">Luminous, lit-from-within skin</div>
+          </div>
+          <div class="goal-card" onclick="selectGoal(this,'Acne Control')">
+            <div class="goal-emoji">💧</div>
+            <div class="goal-name">Clear Skin</div>
+            <div class="goal-sub">Acne control & blemish care</div>
+          </div>
+          <div class="goal-card" onclick="selectGoal(this,'Party Ready Look')">
+            <div class="goal-emoji">💃</div>
+            <div class="goal-name">Party Ready</div>
+            <div class="goal-sub">Bold, unforgettable looks</div>
+          </div>
+          <div class="goal-card" onclick="selectGoal(this,'Daily Natural Look')">
+            <div class="goal-emoji">🌸</div>
+            <div class="goal-name">Natural</div>
+            <div class="goal-sub">Effortless everyday beauty</div>
+          </div>
+        </div>
+        <button class="onboard-btn" onclick="nextOnboardStep()">Continue →</button>
+      </div>
+
+      <!-- Step 3: Voice -->
+      <div class="onboard-step" id="step2">
+        <div class="onboard-label">✦ Choose Your AI Voice</div>
+        <div class="voice-grid">
+          <div class="voice-card selected" id="voiceFemale" onclick="selectVoice('female')">
+            <div class="voice-icon">👩</div>
+            <div class="voice-name">Aura</div>
+            <div class="voice-sub">Warm & empowering</div>
+          </div>
+          <div class="voice-card" id="voiceMale" onclick="selectVoice('male')">
+            <div class="voice-icon">👨</div>
+            <div class="voice-name">Marcus</div>
+            <div class="voice-sub">Professional & suave</div>
+          </div>
+        </div>
+        <button class="onboard-btn" onclick="finishOnboarding()">Enter My Mirror ✦</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ MIRROR SCREEN ══ -->
+  <div id="mirrorScreen" class="screen">
+
+    <!-- Gamification top bar -->
+    <div class="gamebar">
+      <div class="gamebar-stats">
+        <div class="gamebar-chip">
+          <span class="chip-icon">🔥</span>
+          <span class="chip-label">Streak</span>
+          <span class="chip-val" id="streakVal">1</span>
+        </div>
+        <div class="gamebar-chip">
+          <span class="chip-icon">⭐</span>
+          <span class="chip-label">Coins</span>
+          <span class="chip-val" id="coinsVal">0</span>
+        </div>
+      </div>
+      <div class="gamebar-right">
+        <div class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn" onclick="triggerFlash()">⚡</div>
       </div>
     </div>
 
-    <!-- Top header -->
-    <div class="mirror-header">
-      <div class="icon-btn" onclick="showOccasionPicker()">←</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:#fff;letter-spacing:0.06em">Vibe Mirror AI</div>
-      <div class="icon-btn">⚙</div>
-    </div>
+    <!-- Greeting pill -->
+    <div class="greeting-pill" id="greetingPill">✨ Welcome back!</div>
 
     <!-- Occasion input -->
     <div class="occasion-wrap">
-      <input id="occasionInput" class="occasion-input" type="text"
-        placeholder="✨  e.g. outdoor shaadi in Bhopal heat..."
-        value=""/>
+      <input class="occasion-input" id="occasionInput" type="text"
+             placeholder="Occasion or city context (e.g. Bhopal wedding)…"/>
     </div>
 
-    <!-- Video + AR -->
-    <video id="videoEl" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
+    <!-- Camera -->
+    <video id="videoEl" playsinline muted autoplay></video>
+    <canvas id="auraCanvas"></canvas>
     <canvas id="arCanvas"></canvas>
+
+    <!-- AR Guide pill -->
+    <div class="ar-guide-pill" id="arGuidePill">✦ Real-Time AI Guide</div>
 
     <!-- Camera placeholder -->
     <div id="camPlaceholder">
-      <div class="cam-icon">🪞</div>
-      <p>Allow camera access to activate your AI mirror</p>
+      <div class="cam-icon">📷</div>
+      <p>Allow camera access for your premium AI Beauty Mirror</p>
     </div>
-
-    <!-- AR guide pill -->
-    <div class="ar-guide-pill" id="arGuidePill">Real-Time AI Guide</div>
 
     <!-- Bottom panel -->
     <div class="mirror-panel">
-      <!-- Vibe score row -->
-      <div class="vibe-row">
-        <div class="vibe-score-block">
-          <div class="vibe-score-num" id="vibeNum">—</div>
-          <div class="vibe-score-label">Vibe Score</div>
+      <div class="score-row">
+        <div class="score-block">
+          <div class="score-num" id="vibeNum">—</div>
+          <div class="score-label">Vibe Score</div>
         </div>
-        <div class="vibe-bar-wrap">
-          <div class="vibe-bar-track">
-            <div class="vibe-bar-fill" id="vibeBar"></div>
-          </div>
+        <div class="score-right">
+          <div class="symmetry-chip" id="symmetryChip">◈ —%</div>
         </div>
-        <div class="vibe-sound-btn" id="soundBtn" title="Hype Me Out Loud">🔊</div>
       </div>
 
-      <!-- Compliment / status text -->
-      <div class="compliment-text" id="complimentEl">
-        <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">Tap "Hype Me Up" to get your personalized look ✨</span>
+      <div class="score-bar-wrap">
+        <div class="score-bar-track">
+          <div class="score-bar-fill" id="vibeBar"></div>
+        </div>
       </div>
 
-      <!-- Location badge -->
-      <div class="location-badge" id="locationBadge" style="display:none">
-        📍 <span id="locationText">Bhopal Exclusive Offer</span>
+      <div class="compliment-card">
+        <div class="compliment-tag">✦ <span>Aura Analysis</span></div>
+        <div class="compliment-text" id="complimentEl">Point your face at the camera and tap Scan Skin.</div>
       </div>
 
-      <!-- Products -->
-      <div class="products-scroll" id="productsScroll" style="display:none"></div>
+      <div class="products-scroll" id="productsScroll"></div>
 
-      <!-- Hype button -->
-      <div class="hype-area">
-        <button id="hypeBtn" disabled>
+      <div class="action-row">
+        <button class="action-btn btn-secondary" id="hypeBtn" disabled onclick="triggerScan()">
+          <span>📸</span> Scan Skin
+        </button>
+        <button class="action-btn btn-primary" onclick="showGlowShare()">
           <span class="shimmer"></span>
-          ✦ Hype Me Up
+          <span>✨</span> Share Look
         </button>
       </div>
     </div>
+
   </div>
 
-  <!-- ── GUIDE SCREEN ── -->
-  <div id="guideScreen" class="screen">
-    <div class="guide-header">
-      <h2>Beauty Guide</h2>
-      <p>Expert tips powered by your AI stylist</p>
+  <!-- ══ STYLIST SCREEN ══ -->
+  <div id="stylistScreen" class="screen">
+    <div class="stylist-header">
+      <div class="stylist-title">Your Stylist</div>
+      <div class="stylist-sub">Pro consultations & personalised tips</div>
     </div>
-    <div class="guide-cards">
-      <div class="guide-card fade-in">
-        <div class="guide-icon gold">🌟</div>
-        <div class="guide-card-body">
-          <h4>Face Shape Guide</h4>
-          <p>AI detects your face shape in real-time and suggests the perfect contouring, highlight, and blush placement tailored just for you.</p>
+
+    <!-- Pro Consultant -->
+    <div class="pro-card">
+      <div class="pro-badge">VIBE COUNCIL PRO</div>
+      <div class="pro-title">Expert Consultation</div>
+      <div class="pro-sub">Duniya ke best stylists se judein sirf $1 mein.</div>
+
+      <div class="pro-consultants">
+        <div class="consultant-row" onclick="bookConsultant('ai')">
+          <div class="consultant-avatar">🤖<div class="consultant-online-dot"></div></div>
+          <div class="consultant-info">
+            <div class="consultant-name">Vibe Architect AI</div>
+            <div class="consultant-status">● ALWAYS AVAILABLE</div>
+            <div class="consultant-role">Your 24/7 AI Skin Expert</div>
+          </div>
+          <div class="consultant-price">$1</div>
+        </div>
+        <div class="consultant-row" onclick="bookConsultant('sarah')">
+          <div class="consultant-avatar">💁<div class="consultant-online-dot"></div></div>
+          <div class="consultant-info">
+            <div class="consultant-name">Sarah Jenkins</div>
+            <div class="consultant-status">● ONLINE</div>
+            <div class="consultant-role">Senior Stylist · London</div>
+          </div>
+          <div class="consultant-price">$1</div>
         </div>
       </div>
-      <div class="guide-card fade-in d1">
-        <div class="guide-icon rose">💄</div>
-        <div class="guide-card-body">
-          <h4>Lip Shade Finder</h4>
-          <p>Based on your skin undertone, our AI suggests the most flattering lip colours—from nudes to bold reds—available on Nykaa & Amazon.</p>
-        </div>
-      </div>
-      <div class="guide-card fade-in d2">
-        <div class="guide-icon lilac">👁️</div>
-        <div class="guide-card-body">
-          <h4>Eye Enhancement Tips</h4>
-          <p>AR overlay shows exactly where to apply liner, shadow, and highlighter to make your eyes look bigger and more defined.</p>
-        </div>
-      </div>
-      <div class="guide-card fade-in d3">
-        <div class="guide-icon mint">💧</div>
-        <div class="guide-card-body">
-          <h4>Skin Hydration Score</h4>
-          <p>Daily tracking lets you see your skin's progress over time. Get notified when your skin needs extra hydration or SPF protection.</p>
-        </div>
-      </div>
-      <div class="guide-card fade-in d4">
+
+      <button class="pro-cta" onclick="showProSignup()">Apply as Professional Consultant →</button>
+    </div>
+
+    <!-- Hyper-local tips -->
+    <div class="guide-section" id="guideSection">
+      <div class="guide-card">
         <div class="guide-icon gold">☀️</div>
         <div class="guide-card-body">
-          <h4>Weather-Aware Looks</h4>
-          <p>Bhopal ki garmi? Delhi ki sardi? Our AI creates weather-proof looks using sweat-resistant and long-lasting formulas only.</p>
+          <h4>Bhopal Heat Shield</h4>
+          <p>High heat demands sweat-proof foundation + SPF 50. Try Dot & Key Glow Radiance Serum in the AM.</p>
+        </div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-icon rose">💋</div>
+        <div class="guide-card-body">
+          <h4>Lip Liner First Rule</h4>
+          <p>Applying lip liner before lipstick prevents feathering and adds 3x the staying power in humid weather.</p>
+        </div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-icon teal">💧</div>
+        <div class="guide-card-body">
+          <h4>Biomimetic Hydration</h4>
+          <p>Standard creams evaporate in dry climates. Use high-molecular weight moisture barriers to lock in serum.</p>
+        </div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-icon lilac">✨</div>
+        <div class="guide-card-body">
+          <h4>Golden Hour Glow</h4>
+          <p>Dab a warm highlighter on the inner corner of the eye and cupid's bow for an instant photogenic look.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── OCCASION SCREEN ── -->
-  <div id="occasionScreen" class="screen">
-    <div class="occ-header">
-      <h2>Choose Occasion</h2>
-      <p>AI customizes your look for the moment</p>
-    </div>
-    <div class="occ-grid">
-      <div class="occ-card" onclick="selectOccasion(this,'Outdoor Shaadi in Bhopal heat 🌞')">
-        <div class="occ-emoji">💒</div>
-        <div class="occ-name">Shaadi Prep</div>
-        <div class="occ-sub">Sweat-proof, long-lasting bridal looks</div>
-      </div>
-      <div class="occ-card" onclick="selectOccasion(this,'Night party at a lounge 🌙')">
-        <div class="occ-emoji">🌙</div>
-        <div class="occ-name">Night Out</div>
-        <div class="occ-sub">Bold & dramatic evening looks</div>
-      </div>
-      <div class="occ-card" onclick="selectOccasion(this,'Daytime office look 💼')">
-        <div class="occ-emoji">💼</div>
-        <div class="occ-name">Office</div>
-        <div class="occ-sub">Professional, polished and subtle</div>
-        </div>
-      <div class="occ-card" onclick="selectOccasion(this,'Casual coffee date ☕')">
-        <div class="occ-emoji">☕</div>
-        <div class="occ-name">Casual Date</div>
-        <div class="occ-sub">Fresh, effortless everyday glow</div>
-      </div>
-      <div class="occ-card" onclick="selectOccasion(this,'College fest or event 🎉')">
-        <div class="occ-emoji">🎉</div>
-        <div class="occ-name">College Fest</div>
-        <div class="occ-sub">Fun, colorful and expressive</div>
-      </div>
-      <div class="occ-card" onclick="selectOccasion(this,'Outdoor photoshoot 📸')">
-        <div class="occ-emoji">📸</div>
-        <div class="occ-name">Photoshoot</div>
-        <div class="occ-sub">Camera-ready, high-definition looks</div>
-      </div>
-    </div>
-    <button class="occ-apply-btn" onclick="applyOccasion()">✦ Apply & Get My Look</button>
-  </div>
-
-  <!-- ── SHOP SCREEN ── -->
+  <!-- ══ SHOP SCREEN ══ -->
   <div id="shopScreen" class="screen">
     <div class="shop-header">
       <h2>Shop the Look</h2>
-      <p>Curated picks · Best prices · Fast delivery</p>
+      <p>Curated for your skin · Best Indian prices</p>
     </div>
     <div class="shop-filter-row" id="shopFilters">
       <div class="filter-chip active" onclick="filterShop(this,'all')">All</div>
@@ -1042,26 +1559,50 @@
     <div class="shop-grid" id="shopGrid"></div>
   </div>
 
-  <!-- ── PROFILE SCREEN ── -->
+  <!-- ══ PROFILE SCREEN ══ -->
   <div id="profileScreen" class="screen">
     <div class="profile-hero">
-      <div class="profile-avatar">✨</div>
-      <div class="profile-name">Your Aura</div>
-      <div class="profile-sub">Member since today · Bhopal</div>
+      <div class="profile-avatar" id="profileAvatar">✨</div>
+      <div class="profile-name" id="profileName">Your Aura</div>
+      <div class="profile-sub" id="profileSub">Member since today · Bhopal</div>
       <div class="profile-stats">
         <div class="stat-box">
           <div class="stat-num" id="statScans">0</div>
           <div class="stat-label">Scans</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num">87</div>
-          <div class="stat-label">Avg Score</div>
+          <div class="stat-num" id="statCoinsDisplay">0</div>
+          <div class="stat-label">Glow Coins</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num">3</div>
-          <div class="stat-label">Looks Saved</div>
+          <div class="stat-num" id="statStreak">1</div>
+          <div class="stat-label">Day Streak</div>
         </div>
       </div>
+    </div>
+
+    <!-- Glow Score Card -->
+    <div class="glow-score-card">
+      <div class="gsc-eyebrow">YOUR AESTHETIC EVOLUTION</div>
+      <div class="gsc-title">Radiance<br/>Revealed</div>
+      <div class="gsc-sub">A clinical distillation of your journey towards luminous perfection.</div>
+
+      <div class="gsc-wins">
+        <div class="gsc-win">
+          <div class="gsc-win-icon">💧</div>
+          <div class="gsc-win-name">Hydrated</div>
+          <div class="gsc-win-desc">Cellular moisture levels optimised.</div>
+        </div>
+        <div class="gsc-win">
+          <div class="gsc-win-icon">✨</div>
+          <div class="gsc-win-name">Smooth Texture</div>
+          <div class="gsc-win-desc">Reflective index optimised.</div>
+        </div>
+      </div>
+
+      <button class="share-ig-btn" onclick="showGlowShare()">
+        📷 SHARE TO INSTAGRAM
+      </button>
     </div>
 
     <div class="profile-section">
@@ -1093,38 +1634,38 @@
       </div>
 
       <div class="profile-section-title">Settings</div>
-      <div class="profile-row">
+      <div class="profile-row" onclick="showToast('Coming soon!')">
         <div class="profile-row-left">
           <span class="profile-row-icon">🎨</span>
           <span class="profile-row-text">Skin Tone Preferences</span>
         </div>
         <span class="profile-row-arrow">›</span>
       </div>
-      <div class="profile-row">
+      <div class="profile-row" onclick="showToast('Coming soon!')">
         <div class="profile-row-left">
           <span class="profile-row-icon">🛍️</span>
           <span class="profile-row-text">Favourite Brands</span>
         </div>
         <span class="profile-row-arrow">›</span>
       </div>
-      <div class="profile-row">
+      <div class="profile-row" onclick="showToast('On-device only. Your data never leaves this browser.')">
         <div class="profile-row-left">
           <span class="profile-row-icon">🔒</span>
           <span class="profile-row-text">Privacy & Data</span>
         </div>
         <span class="profile-row-arrow">›</span>
       </div>
-      <div class="profile-row" style="margin-bottom:100px">
+      <div class="profile-row" onclick="resetOnboarding()" style="margin-bottom:100px">
         <div class="profile-row-left">
-          <span class="profile-row-icon">⭐</span>
-          <span class="profile-row-text">Rate Vibe Mirror AI</span>
+          <span class="profile-row-icon">🔄</span>
+          <span class="profile-row-text">Reset Onboarding</span>
         </div>
         <span class="profile-row-arrow">›</span>
       </div>
     </div>
   </div>
 
-  <!-- ── BOTTOM NAV ── -->
+  <!-- ══ BOTTOM NAV ══ -->
   <nav id="bottomNav">
     <div class="nav-tab active" onclick="switchTab('mirrorScreen',this)" id="tab-mirror">
       <div class="nav-icon">
@@ -1133,75 +1674,65 @@
       </div>
       <span class="nav-label">Mirror</span>
     </div>
-    <div class="nav-tab" onclick="switchTab('guideScreen',this)" id="tab-guide">
+    <div class="nav-tab" onclick="switchTab('stylistScreen',this)" id="tab-stylist">
       <div class="nav-icon">
-        <span>📖</span>
+        <span class="nav-icon-inner">✂️</span>
         <div class="nav-active-dot"></div>
       </div>
-      <span class="nav-label">Guide</span>
+      <span class="nav-label">Stylist</span>
     </div>
-    <div class="nav-tab" onclick="switchTab('occasionScreen',this)" id="tab-occasion">
+    <div class="nav-tab" onclick="switchTab('shopScreen',this);renderShop()" id="tab-shop">
       <div class="nav-icon">
-        <span>🎭</span>
-        <div class="nav-active-dot"></div>
-      </div>
-      <span class="nav-label">Occasion</span>
-    </div>
-    <div class="nav-tab" onclick="switchTab('shopScreen',this)" id="tab-shop">
-      <div class="nav-icon">
-        <span>🛍</span>
+        <span class="nav-icon-inner">🛍</span>
         <div class="nav-active-dot"></div>
       </div>
       <span class="nav-label">Shop</span>
     </div>
     <div class="nav-tab" onclick="switchTab('profileScreen',this)" id="tab-profile">
       <div class="nav-icon">
-        <span>👤</span>
+        <span class="nav-icon-inner">👤</span>
         <div class="nav-active-dot"></div>
       </div>
       <span class="nav-label">Profile</span>
     </div>
   </nav>
 
+  <!-- ══ GLOW SHARE OVERLAY ══ -->
+  <div id="glowShareOverlay">
+    <div class="glow-share-card">
+      <div class="gsc-logo">✦ VIBE MIRROR AI</div>
+      <div class="gsc-score-ring">
+        <div class="gsc-score-label">GLOW SCORE</div>
+        <div class="gsc-score-num" id="shareScore">88</div>
+        <div class="gsc-peak-label">● PEAK RADIANCE</div>
+      </div>
+      <div class="gsc-compliment" id="shareCompliment">"Your skin is glowing today! Luminosity at 92% · Hydration optimal."</div>
+      <div class="share-overlay-btns">
+        <button class="share-ig-btn-sm" onclick="doShare()">📷 Share to IG</button>
+        <button class="share-close-btn" onclick="closeGlowShare()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 </div>
 
 <script src="script.js"></script>
 <script>
-// ── NAV & SCREEN ─────────────────────────────────────────────────────────
+// ── NAV ──────────────────────────────────────────────────────────────────
 function switchTab(screenId, tabEl) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
   tabEl.classList.add('active');
-  if (screenId === 'shopScreen') renderShop();
 }
 
-function showOccasionPicker() {
-  switchTab('occasionScreen', document.getElementById('tab-occasion'));
-}
-
-// ── OCCASION ─────────────────────────────────────────────────────────────
-let selectedOccasion = '';
-function selectOccasion(el, text) {
-  document.querySelectorAll('.occ-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedOccasion = text;
-}
-
-function applyOccasion() {
-  if (!selectedOccasion) { showToast('Please select an occasion first!'); return; }
-  document.getElementById('occasionInput').value = selectedOccasion;
-  switchTab('mirrorScreen', document.getElementById('tab-mirror'));
-  showToast('✨ Occasion set! Tap Hype Me Up');
-}
-
-// ── SHOP DATA ─────────────────────────────────────────────────────────────
+// ── SHOP ─────────────────────────────────────────────────────────────────
 const SHOP_PRODUCTS = [
   { emoji:'💋', brand:'Sugar Cosmetics', name:'Smudge Me Not Liquid Lipstick', price:'₹599', badge:'Bestseller', cat:'lips', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=sugar+smudge+me+not' },
   { emoji:'🌟', brand:'Nykaa Cosmetics', name:'Skin Genius Foundation', price:'₹899', badge:'AI Pick', cat:'face', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=nykaa+skin+genius+foundation' },
   { emoji:'✨', brand:'Dot & Key', name:'Glow Radiance Serum SPF 50', price:'₹695', badge:'New', cat:'skincare', platform:'amazon', url:'https://www.amazon.in/s?k=dot+key+glow+serum' },
-  { emoji:'👁️', brand:'Plum',  name:'Eye Fix Kohl Kajal Waterproof', price:'₹249', badge:'Trending', cat:'eyes', platform:'myntra', url:'https://www.myntra.com/plum+kajal' },
+  { emoji:'👁️', brand:'Plum', name:'Eye Fix Kohl Kajal Waterproof', price:'₹249', badge:'Trending', cat:'eyes', platform:'myntra', url:'https://www.myntra.com/plum+kajal' },
   { emoji:'💅', brand:'MyGlamm', name:'LIT Liquid Matte Lipstick', price:'₹349', badge:'Sale', cat:'lips', platform:'purplle', url:'https://www.purplle.com/search?q=myglamm+lit+liquid+matte' },
   { emoji:'🌸', brand:'Mamaearth', name:'Ubtan Face Wash with Turmeric', price:'₹199', badge:'Natural', cat:'skincare', platform:'amazon', url:'https://www.amazon.in/s?k=mamaearth+ubtan+face+wash' },
   { emoji:'🎨', brand:'Lakme', name:'9 to 5 Weightless Mousse Foundation', price:'₹425', badge:'Classic', cat:'face', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=lakme+9to5+foundation' },
@@ -1239,6 +1770,34 @@ function renderShop() {
       </div>
     </div>
   `).join('');
+}
+
+// ── CONSULTANT ───────────────────────────────────────────────────────────
+function bookConsultant(type) {
+  showToast(type === 'ai' ? '🤖 Connecting to Vibe Architect AI...' : '💁 Booking Sarah Jenkins...');
+  setTimeout(() => showProSignup(), 1200);
+}
+
+function showProSignup() {
+  showToast('💳 $1 Pro Access — Coming Soon!');
+}
+
+// ── GLOW SHARE OVERLAY ────────────────────────────────────────────────────
+function showGlowShare() {
+  const score = document.getElementById('vibeNum').textContent;
+  const compliment = document.getElementById('complimentEl').textContent;
+  document.getElementById('shareScore').textContent = score === '—' ? '88' : score;
+  document.getElementById('shareCompliment').textContent = '"' + (compliment.includes('Point your') ? 'Your skin is glowing today! Luminosity at 92% · Hydration optimal.' : compliment) + '"';
+  document.getElementById('glowShareOverlay').classList.add('active');
+}
+
+function closeGlowShare() {
+  document.getElementById('glowShareOverlay').classList.remove('active');
+}
+
+function doShare() {
+  showToast('📷 Screenshot saved! Share to your IG Stories ✨');
+  closeGlowShare();
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────
