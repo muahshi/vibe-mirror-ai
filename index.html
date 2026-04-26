@@ -4,757 +4,707 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Vibe Mirror AI</title>
-<meta name="theme-color" content="#111415"/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,700;1,300&family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
-/* ── TOKENS ── */
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
 :root {
-  --primary:        #ffcebf;
-  --primary-container: #e5b1a1;
-  --secondary-fixed: #63f7ff;
-  --on-surface:     #e2e2e4;
-  --on-surface-var: #d5c3bd;
-  --surface:        #111415;
-  --surface-low:    #1a1c1d;
-  --surface-mid:    #1e2021;
-  --surface-high:   #282a2c;
-  --outline-var:    #514440;
-  --background:     #111415;
+  --gold:        #c8965a;
+  --gold2:       #e8b87a;
+  --gold-light:  #f5d9a8;
+  --gold-glow:   rgba(200,150,90,0.35);
+  --rose:        #e5b1a1;
+  --rose2:       #efbbaa;
+  --cyan:        #63f7ff;
+  --bg:          #0a0a0a;
+  --bg2:         #111415;
+  --bg3:         #1a1610;
+  --glass:       rgba(255,255,255,0.06);
+  --glass2:      rgba(255,255,255,0.10);
+  --border:      rgba(255,255,255,0.14);
+  --border-gold: rgba(200,150,90,0.35);
+  --text:        #f0ece8;
+  --text-m:      rgba(240,236,232,0.65);
+  --text-s:      rgba(240,236,232,0.38);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Manrope',sans-serif; color:var(--text); }
 
-html, body {
-  height: 100%; overflow: hidden;
-  background: var(--background);
-  font-family: 'Manrope', sans-serif;
-  color: var(--on-surface);
-}
-
-/* ── GLASS ── */
+/* ── GLASS UTIL ── */
 .glass {
-  background: rgba(0,0,0,0.25);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 0.5px solid rgba(255,255,255,0.18);
+  background:rgba(0,0,0,0.28);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:0.5px solid var(--border);
 }
-.glass-dark {
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 0.5px solid rgba(255,255,255,0.15);
+.glass-gold {
+  background:rgba(0,0,0,0.3);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:0.5px solid var(--border-gold);
 }
-
-/* ── TYPOGRAPHY ── */
-.font-serif   { font-family: 'Noto Serif', serif; }
-.font-label   { font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 0.15em; font-weight: 500; }
-.font-display { font-family: 'Noto Serif', serif; font-size: 42px; line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; }
-.font-headline{ font-family: 'Noto Serif', serif; font-size: 22px; line-height: 1.35; font-weight: 400; }
 
 /* ── SHIMMER TEXT ── */
-.shimmer-text {
-  background: linear-gradient(90deg, #E5B1A1, #fff, #E5B1A1);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmerMove 4s linear infinite;
+.shimmer {
+  background:linear-gradient(100deg,var(--rose),#fff 45%,var(--rose));
+  background-size:200% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:shimmerAnim 5s linear infinite;
 }
-@keyframes shimmerMove { to { background-position: 200% center; } }
+@keyframes shimmerAnim{to{background-position:200% center}}
 
-/* ── PULSING ── */
-.pulse-orb {
-  animation: pulseAnim 3s ease-in-out infinite;
+/* ── PULSE ── */
+.pulse{animation:pulseAnim 2.8s ease-in-out infinite}
+@keyframes pulseAnim{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.22)}}
+
+/* ── FADE UP ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+#app{
+  width:100%;max-width:430px;height:100vh;
+  margin:0 auto;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;background:var(--bg);
 }
-@keyframes pulseAnim {
-  0%,100% { opacity:0.4; transform:scale(1); }
-  50%      { opacity:0.9; transform:scale(1.25); }
-}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;position:relative}
+.screen.active{display:flex}
 
-/* ── APP SHELL ── */
-#app {
-  width: 100%; max-width: 430px;
-  height: 100vh; margin: 0 auto;
-  display: flex; flex-direction: column;
-  position: relative; overflow: hidden;
-  background: var(--background);
-}
+/* Flash overlay */
+#flash{position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.06s}
 
-/* ── SCREENS ── */
-.screen { display:none; flex-direction:column; flex:1; overflow:hidden; position:relative; }
-.screen.active { display:flex; }
-
-/* ── FLASH ── */
-#flashEl {
-  position:fixed; inset:0; z-index:9999;
-  background:#fff; opacity:0; pointer-events:none;
-}
-
-/* ══════════════════════════════════════
+/* ═══════════════════════════════════════
    ONBOARDING
-══════════════════════════════════════ */
-#onboardScreen {
-  background: radial-gradient(ellipse 70% 50% at 75% 20%, rgba(229,177,161,0.12), transparent),
-              radial-gradient(ellipse 50% 60% at 20% 80%, rgba(99,247,255,0.05), transparent),
-              var(--background);
-  overflow-y: auto;
+═══════════════════════════════════════ */
+#onboardScreen{
+  background:
+    radial-gradient(ellipse 65% 45% at 80% 15%, rgba(200,150,90,0.14) 0%,transparent 60%),
+    radial-gradient(ellipse 55% 55% at 15% 85%, rgba(229,177,161,0.08) 0%,transparent 60%),
+    var(--bg);
+  overflow-y:auto;
 }
 
-.ob-header {
-  position: sticky; top: 0; z-index: 10;
-  padding: 16px 24px;
-  display: flex; align-items: center; justify-content: space-between;
+.ob-header{
+  position:sticky;top:0;z-index:10;
+  padding:18px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,0.35);backdrop-filter:blur(30px);
+  border-bottom:0.5px solid var(--border);
 }
-
-.ob-logo {
-  font-family: 'Noto Serif', serif;
-  font-size: 20px; font-weight: 300;
-  letter-spacing: 0.22em;
-  color: #E5B1A1;
-  text-shadow: 0 0 14px rgba(229,177,161,0.45);
+.ob-brand{
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px;font-weight:600;letter-spacing:0.22em;
+  color:var(--rose);text-shadow:0 0 14px rgba(229,177,161,0.4);
 }
+.ob-brand span{font-size:11px;font-family:'Space Grotesk',sans-serif;font-weight:500;letter-spacing:0.1em;color:var(--text-s);display:block;margin-top:1px;}
 
-.ob-body { padding: 12px 24px 60px; }
+.ob-body{padding:24px 24px 60px}
 
-.ob-title {
-  font-family: 'Noto Serif', serif;
-  font-size: 38px; font-weight: 300;
-  letter-spacing: -0.02em;
-  color: var(--on-surface);
-  margin-bottom: 10px;
+.ob-display{
+  font-family:'Cormorant Garamond',serif;
+  font-size:44px;font-weight:300;line-height:1.1;
+  letter-spacing:-0.01em;color:var(--text);margin-bottom:12px;
 }
-
-.ob-sub { font-size: 15px; font-weight: 300; color: var(--on-surface-var); line-height: 1.6; margin-bottom: 36px; }
+.ob-sub{font-size:14px;font-weight:300;color:var(--text-m);line-height:1.65;margin-bottom:32px;max-width:320px}
 
 /* Progress dots */
-.ob-dots { display:flex; gap:8px; margin-bottom:28px; }
-.ob-dot  { width:6px; height:6px; border-radius:3px; background:rgba(255,255,255,0.18); transition:all 0.3s; }
-.ob-dot.active { width:22px; background:#E5B1A1; }
+.ob-dots{display:flex;gap:7px;margin-bottom:24px}
+.ob-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,0.16);transition:all 0.35s}
+.ob-dot.active{width:24px;background:var(--rose)}
 
 /* Steps */
-.ob-step { display:none; flex-direction:column; gap:14px; animation:fadeUp 0.35s ease; }
-.ob-step.active { display:flex; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.ob-step{display:none;flex-direction:column;gap:16px;animation:fadeUp 0.35s ease}
+.ob-step.active{display:flex}
 
-.ob-section-label {
+.ob-lbl{
   font-family:'Space Grotesk',sans-serif;
-  font-size:11px; font-weight:500; letter-spacing:0.15em;
-  color:#E5B1A1; text-transform:uppercase; margin-bottom:2px;
+  font-size:10px;font-weight:600;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--gold2);margin-bottom:2px;
 }
 
-.ob-input {
-  width:100%;
-  background: transparent;
-  border: none; border-bottom: 1px solid rgba(229,177,161,0.35);
-  padding: 14px 4px;
-  font-family:'Manrope',sans-serif; font-size:17px; font-weight:300;
-  color: var(--on-surface);
-  outline: none;
-  transition: border-color 0.3s;
-}
-.ob-input::placeholder { color:rgba(255,255,255,0.3); }
-.ob-input:focus { border-color: #63f7ff; }
+.ob-card{padding:22px;border-radius:16px}
 
-/* Gender */
-.gender-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.gender-card {
-  background:rgba(0,0,0,0.22); border:0.5px solid rgba(255,255,255,0.18);
-  border-radius:12px; padding:18px 12px; text-align:center; cursor:pointer;
-  transition:all 0.2s;
+/* Text input */
+.ob-input{
+  width:100%;background:transparent;
+  border:none;border-bottom:1px solid rgba(229,177,161,0.3);
+  padding:13px 4px;
+  font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+  color:var(--text);outline:none;transition:border-color 0.3s;
 }
-.gender-card:hover { border-color:rgba(229,177,161,0.5); }
-.gender-card.selected { border-color:#E5B1A1; background:rgba(229,177,161,0.12); }
-.gender-card .mat-icon { font-size:28px; color:#E5B1A1; margin-bottom:6px; display:block; }
-.gender-card span:last-child { font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.15em; }
+.ob-input::placeholder{color:rgba(255,255,255,0.28);font-style:italic}
+.ob-input:focus{border-color:var(--cyan)}
+
+/* Gender cards */
+.g-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.g-card{
+  background:rgba(255,255,255,0.05);border:0.5px solid var(--border);
+  border-radius:14px;padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.22s;
+}
+.g-card:hover{border-color:rgba(229,177,161,0.45);background:rgba(229,177,161,0.07)}
+.g-card.sel{border-color:var(--rose);background:rgba(229,177,161,0.13)}
+.g-card .ms{font-family:'Material Symbols Outlined';font-size:26px;color:var(--rose);margin-bottom:8px;display:block}
+.g-card .gl{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em}
 
 /* Voice grid */
-.voice-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.voice-card {
-  background:rgba(0,0,0,0.22); border:0.5px solid rgba(255,255,255,0.14);
-  border-radius:12px; padding:18px 14px; cursor:pointer; transition:all 0.2s;
+.v-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v-card{
+  background:rgba(255,255,255,0.05);border:0.5px solid var(--border);
+  border-radius:14px;padding:18px 14px;cursor:pointer;transition:all 0.22s;
 }
-.voice-card:hover { border-color:rgba(229,177,161,0.4); }
-.voice-card.selected { border-color:#E5B1A1; background:rgba(229,177,161,0.1); }
-.voice-card .mat-icon { font-size:22px; color:#63f7ff; margin-bottom:10px; display:block; }
-.voice-card .vc-name { font-size:15px; font-weight:400; color:var(--on-surface); }
-.voice-card .vc-sub  { font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px; }
+.v-card:hover{border-color:rgba(229,177,161,0.4)}
+.v-card.sel{border-color:var(--rose);background:rgba(229,177,161,0.1)}
+.v-card .ms{font-family:'Material Symbols Outlined';font-size:20px;color:var(--cyan);margin-bottom:8px;display:block}
+.v-card .vn{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text)}
+.v-card .vs{font-size:11px;color:var(--text-s);margin-top:2px}
 
-/* Melanin scale */
-.melanin-row { display:flex; justify-content:space-between; align-items:center; gap:6px; }
-.swatch {
-  width:42px; height:42px; border-radius:50%;
-  border: 1px solid rgba(255,255,255,0.18); cursor:pointer; transition:all 0.2s;
-  flex-shrink:0;
-}
-.swatch.selected { border:2px solid #E5B1A1; box-shadow:0 0 0 3px rgba(229,177,161,0.2); }
+/* Melanin */
+.mel-row{display:flex;justify-content:space-between;align-items:center;gap:7px}
+.swatch{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,0.16);cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.swatch.sel{border:2.5px solid var(--rose);box-shadow:0 0 0 3px rgba(229,177,161,0.22)}
 
-/* Skin type chips */
-.skin-chips { display:flex; flex-wrap:wrap; gap:8px; }
-.skin-chip {
-  padding:7px 18px; border-radius:999px;
-  background:rgba(0,0,0,0.2); border:0.5px solid rgba(255,255,255,0.15);
-  font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.12em;
-  cursor:pointer; transition:all 0.2s;
+/* Skin chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  padding:7px 17px;border-radius:999px;
+  background:transparent;border:0.5px solid var(--border);
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;
+  cursor:pointer;transition:all 0.2s;color:var(--text-m);
 }
-.skin-chip.selected { border-color:#E5B1A1; color:#E5B1A1; background:rgba(229,177,161,0.12); font-weight:600; }
+.chip.sel{border-color:var(--rose);color:var(--rose);background:rgba(229,177,161,0.1);font-weight:600}
 
 /* Goal rows */
-.goal-list { display:flex; flex-direction:column; gap:10px; }
-.goal-row {
-  background:rgba(0,0,0,0.22); border:0.5px solid rgba(255,255,255,0.14);
-  border-radius:14px; padding:16px 18px;
-  display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s;
+.goal-list{display:flex;flex-direction:column;gap:10px}
+.goal-row{
+  background:rgba(255,255,255,0.04);border:0.5px solid var(--border);
+  border-radius:14px;padding:16px 18px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.22s;
 }
-.goal-row:hover  { background:rgba(255,255,255,0.04); }
-.goal-row.selected { border-color:#E5B1A1; background:rgba(229,177,161,0.1); }
-.goal-icon  { font-size:1.6rem; flex-shrink:0; }
-.goal-info  { flex:1; }
-.goal-name  { font-size:15px; font-weight:400; color:var(--on-surface); }
-.goal-sub   { font-size:12px; color:var(--on-surface-var); margin-top:2px; }
-.mat-icon-arrow { font-family:'Material Symbols Outlined'; font-size:18px; color:rgba(255,255,255,0.25); }
-.goal-row.selected .mat-icon-arrow { color:#E5B1A1; font-variation-settings:'FILL' 1; }
+.goal-row:hover{background:rgba(255,255,255,0.07)}
+.goal-row.sel{border-color:var(--rose);background:rgba(229,177,161,0.09)}
+.goal-emoji{font-size:1.6rem;flex-shrink:0}
+.goal-info{flex:1}
+.goal-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text)}
+.goal-sub{font-size:11px;color:var(--text-s);margin-top:2px}
+.goal-arrow{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.22)}
+.goal-row.sel .goal-arrow{color:var(--rose);font-variation-settings:'FILL' 1}
 
 /* Privacy badge */
-.privacy-badge {
-  display:inline-flex; align-items:center; gap:7px;
-  padding:7px 16px; border-radius:999px;
-  background:rgba(0,0,0,0.2); border:0.5px solid rgba(99,247,255,0.3);
-  font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.1em;
-  color:rgba(255,255,255,0.6);
+.priv-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 15px;border-radius:999px;
+  background:rgba(99,247,255,0.07);border:0.5px solid rgba(99,247,255,0.28);
+  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.55);
 }
-.privacy-badge .mat-icon { font-family:'Material Symbols Outlined'; font-size:14px; color:#63f7ff; font-variation-settings:'FILL' 1; }
+.priv-badge .ms{font-family:'Material Symbols Outlined';font-size:13px;color:var(--cyan);font-variation-settings:'FILL' 1}
 
 /* CTA Button */
-.ob-cta {
-  width:100%; padding:18px;
-  background: var(--primary-container);
-  color: #3a1f15;
-  font-family:'Noto Serif',serif; font-size:15px; font-weight:700;
-  letter-spacing:0.2em; text-transform:uppercase;
-  border:none; border-radius:999px; cursor:pointer;
-  box-shadow: 0 0 20px rgba(229,177,161,0.3);
-  position:relative; overflow:hidden;
-  transition: box-shadow 0.3s, transform 0.15s;
+.ob-cta{
+  width:100%;padding:18px;
+  background:linear-gradient(135deg,var(--rose),var(--rose2));
+  color:#3a1a10;font-family:'Cormorant Garamond',serif;
+  font-size:17px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;
+  border:none;border-radius:999px;cursor:pointer;
+  box-shadow:0 0 24px rgba(229,177,161,0.32);
+  position:relative;overflow:hidden;transition:box-shadow 0.3s,transform 0.15s;
 }
-.ob-cta::after {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-  transform:translateX(-100%); transition:transform 0.9s;
+.ob-cta::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
+  transform:translateX(-100%);transition:transform 1s;
 }
-.ob-cta:hover { box-shadow:0 0 40px rgba(229,177,161,0.5); }
-.ob-cta:hover::after { transform:translateX(100%); }
-.ob-cta:active { transform:scale(0.97); }
+.ob-cta:hover{box-shadow:0 0 44px rgba(229,177,161,0.55)}
+.ob-cta:hover::after{transform:translateX(100%)}
+.ob-cta:active{transform:scale(0.97)}
 
-.ob-skip { text-align:center; font-size:12px; color:rgba(255,255,255,0.3); cursor:pointer; margin-top:4px; }
-.ob-skip:hover { color:rgba(255,255,255,0.5); }
+.ob-skip{text-align:center;font-size:12px;color:var(--text-s);cursor:pointer;margin-top:4px;transition:color 0.2s}
+.ob-skip:hover{color:var(--text-m)}
 
-.ob-next {
-  padding:14px; background:rgba(229,177,161,0.18);
-  border:0.5px solid rgba(229,177,161,0.4); border-radius:12px;
-  font-family:'Space Grotesk',sans-serif; font-size:12px; letter-spacing:0.12em;
-  color:#E5B1A1; cursor:pointer; transition:all 0.2s; text-transform:uppercase;
+.ob-next{
+  padding:14px;background:rgba(229,177,161,0.14);
+  border:0.5px solid rgba(229,177,161,0.38);border-radius:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:0.12em;
+  color:var(--rose);cursor:pointer;transition:all 0.2s;text-transform:uppercase;
 }
-.ob-next:hover { background:rgba(229,177,161,0.28); }
+.ob-next:hover{background:rgba(229,177,161,0.25)}
 
-/* ══════════════════════════════════════
+/* ═══════════════════════════════════════
    MIRROR SCREEN
-══════════════════════════════════════ */
-#mirrorScreen { background:#000; }
+═══════════════════════════════════════ */
+#mirrorScreen{background:#000;position:relative}
 
-/* Top nav HUD */
-.mirror-top {
-  position:absolute; top:0; left:0; right:0; z-index:50;
+/* Top HUD */
+.mirror-top{
+  position:absolute;top:0;left:0;right:0;z-index:50;
   padding:16px 16px 0;
-  display:flex; justify-content:space-between; align-items:flex-start;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
 }
 
-.gamebar-chip {
-  display:flex; align-items:center; gap:10px;
-  background:rgba(0,0,0,0.22); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.2); border-radius:12px;
-  padding:8px 16px;
+.gamebar{
+  background:rgba(0,0,0,0.32);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.18);border-radius:14px;
+  padding:8px 16px;display:flex;align-items:center;gap:12px;
 }
-.gc-col { display:flex; flex-direction:column; }
-.gc-label { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.12em; color:rgba(255,255,255,0.5); }
-.gc-val   { font-family:'Noto Serif',serif; font-size:22px; font-weight:400; line-height:1; }
-.gc-val.streak { color:#E5B1A1; }
-.gc-val.coins  { color:#63f7ff; }
-.gc-divider { width:1px; height:32px; background:rgba(255,255,255,0.1); }
+.gc-col{display:flex;flex-direction:column}
+.gc-lbl{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.14em;color:rgba(255,255,255,0.45);text-transform:uppercase}
+.gc-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;line-height:1}
+.gc-streak{color:var(--rose)}
+.gc-coins{color:var(--cyan)}
+.gc-div{width:1px;height:32px;background:rgba(255,255,255,0.12)}
 
-.flash-btn {
-  background:rgba(0,0,0,0.22); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.28); border-radius:999px;
-  padding:12px; cursor:pointer; transition:all 0.2s;
-  display:flex; align-items:center; gap:6px;
+.top-btns{display:flex;gap:8px}
+.icon-btn{
+  background:rgba(0,0,0,0.32);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.22);border-radius:50%;
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;
 }
-.flash-btn:hover { background:rgba(229,177,161,0.2); }
-.flash-btn .mat-icon { font-family:'Material Symbols Outlined'; font-size:22px; color:#E5B1A1; }
+.icon-btn:hover{background:rgba(229,177,161,0.2);border-color:rgba(229,177,161,0.5)}
+.icon-btn .ms{font-family:'Material Symbols Outlined';font-size:20px;color:var(--rose)}
 
-/* Brand logo center */
-.mirror-brand {
-  position:absolute; top:20px; left:0; right:0; z-index:40;
-  text-align:center; pointer-events:none;
-  font-family:'Noto Serif',serif; font-size:22px; font-weight:300;
-  letter-spacing:0.3em; color:#E5B1A1;
-  text-shadow:0 0 15px rgba(229,177,161,0.5);
+/* Brand center */
+.mirror-brand{
+  position:absolute;top:20px;left:0;right:0;z-index:40;
+  text-align:center;pointer-events:none;
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  letter-spacing:0.22em;color:var(--rose);
+  text-shadow:0 0 18px rgba(229,177,161,0.55);
 }
+.mirror-brand small{font-size:9px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.14em;color:var(--text-s);display:block;margin-top:1px}
 
 /* Camera */
-#videoEl  { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block; }
-#auraCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:18; }
-#arCanvas   { position:absolute; inset:0; width:100%; height:100%; transform:scaleX(-1); pointer-events:none; z-index:20; }
+#videoEl{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+#auraCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:18}
+#arCanvas{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;z-index:20}
 
-#camPlaceholder {
-  position:absolute; inset:0; z-index:25;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-  background:radial-gradient(ellipse at center, #1e1510 0%, #111415 100%);
+#camPlaceholder{
+  position:absolute;inset:0;z-index:25;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:radial-gradient(ellipse at center,#1a1208 0%,#0a0a0a 100%);
 }
-#camPlaceholder .mat-icon { font-family:'Material Symbols Outlined'; font-size:52px; color:rgba(255,255,255,0.2); }
-#camPlaceholder p { font-size:13px; color:rgba(255,255,255,0.4); text-align:center; max-width:200px; line-height:1.6; }
-#camPlaceholder.hidden { display:none; }
+#camPlaceholder .ms{font-family:'Material Symbols Outlined';font-size:56px;color:rgba(255,255,255,0.18)}
+#camPlaceholder p{font-size:13px;color:rgba(255,255,255,0.38);text-align:center;max-width:200px;line-height:1.65}
+#camPlaceholder.hidden{display:none}
 
-/* AR guide pill */
-.ar-pill {
-  position:absolute; top:50%; left:50%; z-index:30;
+/* AR Guide pill */
+.ar-pill{
+  position:absolute;top:50%;left:50%;z-index:30;
   transform:translate(-50%,-50%) translateY(-50%);
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.3); border-radius:999px;
-  padding:7px 18px; font-family:'Space Grotesk',sans-serif;
-  font-size:11px; letter-spacing:0.1em; color:#fff;
-  opacity:0; transition:opacity 0.6s;
-  display:flex; align-items:center; gap:6px;
+  background:rgba(0,0,0,0.42);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.28);border-radius:999px;
+  padding:7px 18px;display:flex;align-items:center;gap:7px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;color:#fff;
+  opacity:0;transition:opacity 0.6s;
 }
-.ar-pill.visible { opacity:1; }
-.ar-pill .mat-icon { font-family:'Material Symbols Outlined'; font-size:15px; color:#63f7ff; font-variation-settings:'FILL' 1; }
+.ar-pill.visible{opacity:1}
+.ar-pill .ms{font-family:'Material Symbols Outlined';font-size:14px;color:var(--cyan);font-variation-settings:'FILL' 1}
 
 /* Occasion input */
-.occ-wrap {
-  position:absolute; top:96px; left:0; right:0; z-index:50; padding:0 16px;
+.occ-wrap{position:absolute;top:96px;left:0;right:0;z-index:50;padding:0 16px}
+.occ-input{
+  width:100%;background:rgba(0,0,0,0.42);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.18);border-radius:999px;
+  padding:10px 20px;font-family:'Manrope',sans-serif;font-size:13px;
+  color:#fff;outline:none;transition:border-color 0.25s;
 }
-.occ-input {
-  width:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.2); border-radius:999px;
-  padding:10px 20px; font-family:'Manrope',sans-serif; font-size:13px;
-  color:#fff; outline:none; transition:border-color 0.2s;
-}
-.occ-input::placeholder { color:rgba(255,255,255,0.3); }
-.occ-input:focus { border-color:rgba(229,177,161,0.5); }
+.occ-input::placeholder{color:rgba(255,255,255,0.3)}
+.occ-input:focus{border-color:rgba(229,177,161,0.55)}
 
 /* Bottom panel */
-.mirror-bottom {
-  position:absolute; bottom:0; left:0; right:0; z-index:40;
-  background:linear-gradient(to top, rgba(0,0,0,0.97) 55%, rgba(0,0,0,0.75) 80%, transparent 100%);
+.mirror-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:40;
+  background:linear-gradient(to top,rgba(0,0,0,0.97) 50%,rgba(0,0,0,0.78) 78%,transparent 100%);
   padding:0 16px 92px;
 }
 
-/* Vibe score */
-.score-row { display:flex; align-items:flex-end; justify-content:space-between; padding:28px 4px 10px; }
-.score-num {
-  font-family:'Noto Serif',serif; font-size:56px; font-weight:300;
-  color:#fff; line-height:1;
-}
-.score-lbl { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); margin-top:4px; }
-.sym-chip {
-  background:rgba(99,247,255,0.12); border:0.5px solid rgba(99,247,255,0.35);
-  border-radius:8px; padding:5px 10px;
-  font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.1em; color:#63f7ff;
+.score-row{display:flex;align-items:flex-end;justify-content:space-between;padding:26px 4px 10px}
+.score-num{font-family:'Cormorant Garamond',serif;font-size:62px;font-weight:300;color:#fff;line-height:1}
+.score-lbl{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.16em;color:rgba(255,255,255,0.4);margin-top:5px;text-transform:uppercase}
+.sym-chip{
+  background:rgba(99,247,255,0.1);border:0.5px solid rgba(99,247,255,0.35);
+  border-radius:8px;padding:5px 10px;
+  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;color:var(--cyan);
 }
 
-.score-bar-wrap { padding:0 4px 10px; }
-.score-bar-track { height:4px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; }
-.score-bar-fill  {
-  height:100%; border-radius:4px;
-  background:linear-gradient(90deg,#E5B1A1,#63f7ff);
-  width:0; transition:width 1.4s cubic-bezier(0.34,1.3,0.64,1);
-}
+.bar-wrap{padding:0 4px 12px}
+.bar-track{height:3px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--rose),var(--cyan));width:0;transition:width 1.5s cubic-bezier(0.34,1.3,0.64,1)}
 
 /* Compliment card */
-.compliment-card {
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.2); border-radius:14px;
-  padding:16px 18px; margin-bottom:12px;
-  position:relative; overflow:hidden;
+.comp-card{
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(40px);
+  border:0.5px solid rgba(255,255,255,0.16);border-radius:16px;
+  padding:16px 18px;margin-bottom:12px;
+  position:relative;overflow:hidden;
 }
-.compliment-card::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:#E5B1A1; }
-.compliment-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.compliment-header .mat-icon { font-family:'Material Symbols Outlined'; font-size:18px; color:#63f7ff; font-variation-settings:'FILL' 1; animation:pulseAnim 3s infinite; }
-.compliment-title { font-family:'Noto Serif',serif; font-size:16px; font-weight:400; color:var(--primary); }
-.compliment-sub   { font-size:13px; color:rgba(255,255,255,0.55); line-height:1.55; }
+.comp-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--rose),transparent)}
+.comp-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.comp-head .ms{font-family:'Material Symbols Outlined';font-size:17px;color:var(--cyan);font-variation-settings:'FILL' 1;animation:pulseAnim 3s infinite}
+.comp-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--rose);font-weight:400;line-height:1.35}
+.comp-sub{font-size:12px;color:rgba(255,255,255,0.52);line-height:1.55}
 
-/* Products */
-.products-scroll { display:none; flex-direction:row; gap:10px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px; scrollbar-width:none; }
-.products-scroll::-webkit-scrollbar { display:none; }
-.product-card {
-  flex-shrink:0; width:148px;
-  background:rgba(0,0,0,0.5); backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.15); border-radius:14px; overflow:hidden;
-  cursor:pointer; transition:transform 0.2s, border-color 0.2s;
+/* Products scroll */
+.prods{display:none;flex-direction:row;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none}
+.prods::-webkit-scrollbar{display:none}
+
+.pcard{
+  flex-shrink:0;width:146px;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.12);border-radius:14px;overflow:hidden;
+  cursor:pointer;transition:transform 0.2s,border-color 0.2s;
 }
-.product-card:hover { transform:translateY(-3px); border-color:rgba(229,177,161,0.4); }
-.prd-img { height:80px; background:linear-gradient(135deg,#1e1a18,#0d0a08); display:flex; align-items:center; justify-content:center; font-size:2rem; position:relative; }
-.prd-platform { position:absolute; top:6px; right:6px; font-size:9px; font-weight:700; font-family:'Space Grotesk',sans-serif; padding:2px 6px; border-radius:4px; color:#fff; }
-.dot-nykaa   { background:#fc2779; }
-.dot-amazon  { background:#f90; color:#111; }
-.dot-myntra  { background:#ff3f6c; }
-.dot-purplle { background:#7c3aed; }
-.prd-body    { padding:10px 10px 12px; }
-.prd-brand   { font-family:'Space Grotesk',sans-serif; font-size:9px; letter-spacing:0.12em; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:2px; }
-.prd-name    { font-size:12px; font-weight:600; color:var(--on-surface); line-height:1.3; margin-bottom:3px; }
-.prd-desc    { font-size:10px; color:rgba(255,255,255,0.45); margin-bottom:6px; }
-.prd-price   { font-size:12px; font-weight:700; color:#E5B1A1; margin-bottom:6px; }
-.prd-btn     { width:100%; padding:6px; background:var(--primary-container); border:none; border-radius:7px; color:#3a1f15; font-size:10px; font-weight:700; font-family:'Space Grotesk',sans-serif; letter-spacing:0.06em; cursor:pointer; }
+.pcard:hover{transform:translateY(-3px);border-color:rgba(229,177,161,0.42)}
+.pimg{height:82px;background:linear-gradient(135deg,#1a1410,#0a0808);display:flex;align-items:center;justify-content:center;font-size:2.1rem;position:relative}
+.pplatform{position:absolute;top:6px;right:6px;font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;color:#fff}
+.p-nykaa{background:#fc2779}
+.p-amazon{background:#f90;color:#111}
+.p-myntra{background:#ff3f6c}
+.p-purplle{background:#7c3aed}
+.pbody{padding:10px 10px 12px}
+.pbrand{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-bottom:2px}
+.pname{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px}
+.pdesc{font-size:10px;color:rgba(255,255,255,0.42);margin-bottom:6px}
+.pprice{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:6px}
+.pbtn{width:100%;padding:6px;background:var(--rose);border:none;border-radius:7px;color:#3a1a10;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;cursor:pointer}
 
-/* Action buttons */
-.action-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:4px 4px 0; }
-.act-btn {
-  padding:14px 10px; border-radius:10px;
-  font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.1em;
-  font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
-  transition:transform 0.15s, opacity 0.2s; text-transform:uppercase; border:none;
+/* Action row */
+.act-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 4px 0}
+.abtn{
+  padding:14px 10px;border-radius:11px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:transform 0.15s,opacity 0.2s;text-transform:uppercase;border:none;
 }
-.act-btn:hover { transform:translateY(-2px); }
-.act-btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
-.act-btn .mat-icon { font-family:'Material Symbols Outlined'; font-size:18px; }
+.abtn:hover:not(:disabled){transform:translateY(-2px)}
+.abtn:disabled{opacity:0.42;cursor:not-allowed}
+.abtn .ms{font-family:'Material Symbols Outlined';font-size:18px}
 
-.btn-scan {
-  background:rgba(255,255,255,0.1); backdrop-filter:blur(30px);
-  border:0.5px solid rgba(229,177,161,0.45); color:#E5B1A1;
+.abtn-scan{
+  background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(229,177,161,0.42);color:var(--rose);
 }
-.btn-scan:hover { background:rgba(255,255,255,0.18); }
+.abtn-scan:hover:not(:disabled){background:rgba(255,255,255,0.14)}
 
-.btn-ar {
-  background:var(--primary-container); color:#3a1f15;
-  position:relative; overflow:hidden;
-  box-shadow:0 4px 20px rgba(229,177,161,0.3);
+.abtn-ar{
+  background:linear-gradient(135deg,var(--rose),var(--rose2));
+  color:#3a1a10;box-shadow:0 4px 22px rgba(229,177,161,0.32);
+  position:relative;overflow:hidden;
 }
-.btn-ar::after {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
-  transform:translateX(-100%); transition:transform 0.7s;
-}
-.btn-ar:hover::after { transform:translateX(100%); }
+.abtn-ar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.32),transparent);transform:translateX(-100%);transition:transform 0.7s}
+.abtn-ar:hover::after{transform:translateX(100%)}
 
-/* Spinner */
-.btn-spinner { display:inline-block; width:15px; height:15px; border:2px solid rgba(0,0,0,0.2); border-top-color:#3a1f15; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:4px; }
-@keyframes spin { to{transform:rotate(360deg)} }
+.btn-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,0.2);border-top-color:#3a1a10;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px}
 
-/* ══════════════════════════════════════
+/* ═══════════════════════════════════════
    STYLIST SCREEN
-══════════════════════════════════════ */
-#stylistScreen { background:var(--background); overflow-y:auto; }
+═══════════════════════════════════════ */
+#stylistScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
 
-.screen-header {
-  padding:56px 24px 20px;
-  background:linear-gradient(160deg,rgba(30,20,16,1) 0%,var(--background) 100%);
-  border-bottom:0.5px solid rgba(255,255,255,0.08);
+.sty-header{
+  padding:52px 24px 18px;
+  background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);
+  border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0;
 }
-.screen-header .logo { font-family:'Noto Serif',serif; font-size:22px; letter-spacing:0.2em; font-weight:300; color:#E5B1A1; text-shadow:0 0 10px rgba(229,177,161,0.4); }
-.screen-header .hdr-title { font-family:'Noto Serif',serif; font-size:28px; font-weight:400; color:var(--on-surface); margin-top:4px; }
-.screen-header .hdr-sub   { font-size:13px; color:var(--on-surface-var); margin-top:4px; }
+.sty-brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;letter-spacing:0.2em;color:var(--rose);text-shadow:0 0 12px rgba(229,177,161,0.4)}
+.sty-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-top:2px}
+.sty-sub{font-size:13px;color:var(--text-m);margin-top:3px}
 
-/* Elite access card */
-.elite-card {
-  margin:16px; padding:22px;
-  background:rgba(0,0,0,0.2); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.18); border-radius:16px;
-  position:relative; overflow:hidden;
+.sty-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+
+/* Elite card */
+.elite{
+  margin:16px;padding:22px;border-radius:18px;
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.15);position:relative;overflow:hidden;
 }
-.elite-card::after { content:''; position:absolute; top:0; right:0; padding:14px; }
-.elite-pulse { position:absolute; top:16px; right:16px; width:8px; height:8px; border-radius:50%; background:#63f7ff; box-shadow:0 0 12px #63f7ff; animation:pulseAnim 2s infinite; }
-.elite-eyebrow { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#E5B1A1; margin-bottom:8px; }
-.elite-title { font-family:'Noto Serif',serif; font-size:22px; font-weight:400; color:#fff; margin-bottom:6px; }
-.elite-sub   { font-size:13px; color:var(--on-surface-var); line-height:1.55; margin-bottom:16px; }
-.elite-btn   {
-  padding:11px 22px; border-radius:999px;
-  background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.3);
-  font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
-  color:#E5B1A1; cursor:pointer; transition:all 0.2s;
+.elite-pulse{position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:pulseAnim 2.2s infinite}
+.elite-eye{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.17em;text-transform:uppercase;color:var(--rose);margin-bottom:8px}
+.elite-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:#fff;margin-bottom:6px}
+.elite-sub{font-size:13px;color:var(--text-m);line-height:1.55;margin-bottom:16px}
+.elite-btn{
+  padding:11px 22px;border-radius:999px;
+  background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.28);
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--rose);cursor:pointer;transition:all 0.2s;
 }
-.elite-btn:hover { background:rgba(255,255,255,0.12); }
+.elite-btn:hover{background:rgba(255,255,255,0.12)}
 
 /* Consultant rows */
-.consultants { display:flex; flex-direction:column; gap:10px; padding:0 16px 16px; }
-.consultant-row {
-  background:rgba(0,0,0,0.2); backdrop-filter:blur(30px);
-  border:0.5px solid rgba(255,255,255,0.12); border-radius:14px;
-  padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s;
+.cons-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.con-row{
+  background:rgba(0,0,0,0.24);backdrop-filter:blur(24px);
+  border:0.5px solid rgba(255,255,255,0.11);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;
 }
-.consultant-row:hover { border-color:rgba(229,177,161,0.35); background:rgba(255,255,255,0.04); }
-.con-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#E5B1A1,#c88060); display:flex; align-items:center; justify-content:center; font-size:1.3rem; position:relative; flex-shrink:0; }
-.con-dot    { position:absolute; bottom:1px; right:1px; width:10px; height:10px; background:#4ade80; border:2px solid var(--background); border-radius:50%; }
-.con-info   { flex:1; }
-.con-name   { font-size:15px; font-weight:600; color:var(--on-surface); }
-.con-status { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.1em; color:#4ade80; margin-top:1px; }
-.con-role   { font-size:12px; color:var(--on-surface-var); }
-.con-price  { background:rgba(255,255,255,0.1); border:0.5px solid rgba(255,255,255,0.2); border-radius:10px; padding:6px 14px; font-size:15px; font-weight:700; color:#fff; }
+.con-row:hover{border-color:rgba(229,177,161,0.35);background:rgba(255,255,255,0.04)}
+.con-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--rose),#c88060);display:flex;align-items:center;justify-content:center;font-size:1.3rem;position:relative;flex-shrink:0}
+.con-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:#4ade80;border:2px solid var(--bg);border-radius:50%}
+.con-info{flex:1}
+.con-name{font-size:15px;font-weight:600;color:var(--text)}
+.con-status{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;color:#4ade80;margin-top:1px}
+.con-role{font-size:12px;color:var(--text-m)}
+.con-price{background:rgba(255,255,255,0.09);border:0.5px solid rgba(255,255,255,0.18);border-radius:10px;padding:6px 14px;font-size:15px;font-weight:700;color:#fff}
 
 /* Apply card */
-.apply-card {
+.apply-card{
   margin:0 16px 16px;
-  background:rgba(0,0,0,0.2); border:1px dashed rgba(229,177,161,0.35); border-radius:16px;
-  padding:22px; text-align:center;
+  background:rgba(0,0,0,0.2);border:1px dashed rgba(229,177,161,0.32);border-radius:16px;
+  padding:22px;text-align:center;
 }
-.apply-card h3 { font-family:'Noto Serif',serif; font-size:20px; font-weight:400; color:#fff; margin-bottom:8px; }
-.apply-card p  { font-size:13px; color:var(--on-surface-var); margin-bottom:18px; line-height:1.55; }
-.apply-btn {
-  padding:12px 28px; border-radius:999px;
-  background:transparent; border:1px solid #E5B1A1;
-  font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
-  color:#E5B1A1; cursor:pointer; transition:all 0.2s;
+.apply-card h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#fff;margin-bottom:8px}
+.apply-card p{font-size:13px;color:var(--text-m);margin-bottom:18px;line-height:1.55}
+.apply-btn{
+  padding:12px 26px;border-radius:999px;
+  background:transparent;border:1px solid var(--rose);
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--rose);cursor:pointer;transition:all 0.2s;
 }
-.apply-btn:hover { background:rgba(229,177,161,0.12); }
+.apply-btn:hover{background:rgba(229,177,161,0.12)}
 
-/* AR status pulse */
-.ar-status {
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  margin:8px 16px;
-  background:rgba(255,255,255,0.04); backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.1); border-radius:999px;
-  padding:8px 18px;
+/* AR status */
+.ar-status{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin:8px 16px 16px;
+  background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.09);border-radius:999px;padding:8px 18px;
 }
-.ar-status-dot { width:6px; height:6px; border-radius:50%; background:#63f7ff; box-shadow:0 0 8px #63f7ff; animation:pulseAnim 2s infinite; }
-.ar-status-txt { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.18em; color:var(--on-surface-var); text-transform:uppercase; }
+.ar-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulseAnim 2s infinite}
+.ar-txt{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.16em;color:var(--text-m);text-transform:uppercase}
 
 /* Chat */
-.chat-area { padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
-.chat-user {
-  align-self:flex-end; max-width:80%;
-  background:rgba(0,0,0,0.3); backdrop-filter:blur(30px);
-  border:0.5px solid rgba(255,255,255,0.18); border-radius:16px 16px 4px 16px;
-  padding:14px 16px; font-size:14px; font-weight:300; color:#fff; line-height:1.55;
+.chat-area{padding:0 16px 14px;display:flex;flex-direction:column;gap:14px}
+.chat-u{
+  align-self:flex-end;max-width:80%;
+  background:rgba(0,0,0,0.32);backdrop-filter:blur(24px);
+  border:0.5px solid rgba(255,255,255,0.16);border-radius:16px 16px 4px 16px;
+  padding:14px 16px;font-size:14px;font-weight:300;color:#fff;line-height:1.55;
 }
-.chat-ai { display:flex; align-items:flex-start; gap:10px; }
-.chat-ai-avatar {
-  width:30px; height:30px; border-radius:50%; flex-shrink:0;
-  background:rgba(229,177,161,0.18); border:0.5px solid rgba(229,177,161,0.4);
-  display:flex; align-items:center; justify-content:center;
+.chat-ai{display:flex;align-items:flex-start;gap:10px}
+.chat-ai-av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:rgba(229,177,161,0.16);border:0.5px solid rgba(229,177,161,0.38);
+  display:flex;align-items:center;justify-content:center;
 }
-.chat-ai-avatar .mat-icon { font-family:'Material Symbols Outlined'; font-size:14px; color:#E5B1A1; }
-.chat-ai-bubble {
-  max-width:85%; background:rgba(0,0,0,0.3); backdrop-filter:blur(30px);
-  border:0.5px solid rgba(255,255,255,0.12); border-radius:4px 16px 16px 16px;
-  padding:14px 16px; font-size:14px; font-weight:300; color:var(--on-surface); line-height:1.6;
+.chat-ai-av .ms{font-family:'Material Symbols Outlined';font-size:14px;color:var(--rose)}
+.chat-ai-b{
+  max-width:85%;background:rgba(0,0,0,0.3);backdrop-filter:blur(24px);
+  border:0.5px solid rgba(255,255,255,0.1);border-radius:4px 16px 16px 16px;
+  padding:14px 16px;font-size:14px;font-weight:300;color:var(--text);line-height:1.6;
 }
 
-/* Input bar */
-.chat-input-wrap {
-  position:sticky; bottom:0; padding:10px 16px 0;
-  background:linear-gradient(to top, var(--background), transparent);
+/* Chat input */
+.chat-iw{position:sticky;bottom:0;padding:10px 16px 2px;background:linear-gradient(to top,var(--bg),transparent)}
+.chat-ir{
+  display:flex;align-items:center;
+  background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.16);border-radius:999px;
+  padding:8px 8px 8px 18px;gap:10px;
 }
-.chat-input-row {
-  display:flex; align-items:center;
-  background:rgba(0,0,0,0.3); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.18); border-radius:999px;
-  padding:8px 8px 8px 20px; gap:10px;
+.chat-ir input{flex:1;background:transparent;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:14px;color:#fff}
+.chat-ir input::placeholder{color:rgba(255,255,255,0.28)}
+.chat-ir .ms{font-family:'Material Symbols Outlined';font-size:20px;color:rgba(255,255,255,0.38);cursor:pointer}
+.chat-send{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(229,177,161,0.18);border:0.5px solid rgba(229,177,161,0.38);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;
 }
-.chat-input-row input {
-  flex:1; background:transparent; border:none; outline:none;
-  font-family:'Manrope',sans-serif; font-size:14px; color:#fff;
-}
-.chat-input-row input::placeholder { color:rgba(255,255,255,0.3); }
-.chat-input-row .mat-icon { font-family:'Material Symbols Outlined'; font-size:20px; color:rgba(255,255,255,0.4); cursor:pointer; }
-.chat-send {
-  width:36px; height:36px; border-radius:50%;
-  background:rgba(229,177,161,0.2); border:0.5px solid rgba(229,177,161,0.4);
-  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;
-}
-.chat-send:hover { background:rgba(229,177,161,0.35); }
-.chat-send .mat-icon { font-family:'Material Symbols Outlined'; font-size:18px; color:#E5B1A1; }
+.chat-send:hover{background:rgba(229,177,161,0.32)}
+.chat-send .ms{font-family:'Material Symbols Outlined';font-size:17px;color:var(--rose)}
 
-/* ══════════════════════════════════════
-   PROFILE SCREEN (Radiance Revealed)
-══════════════════════════════════════ */
-#profileScreen { background:var(--surface); overflow-y:auto; }
+/* ═══════════════════════════════════════
+   SHOP SCREEN
+═══════════════════════════════════════ */
+#shopScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.shop-hdr{padding:52px 24px 16px;background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
+.shop-hdr h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:3px}
+.shop-hdr p{font-size:13px;color:var(--text-m)}
+.shop-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+.filter-row{display:flex;gap:8px;padding:12px 24px;overflow-x:auto;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.fchip{
+  flex-shrink:0;padding:7px 16px;border-radius:999px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:500;
+  border:0.5px solid rgba(255,255,255,0.13);color:rgba(255,255,255,0.5);background:transparent;cursor:pointer;transition:all 0.2s;
+}
+.fchip.active{border-color:var(--rose);color:var(--rose);background:rgba(229,177,161,0.1)}
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 24px 20px}
+.scard{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.09);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform 0.2s,border-color 0.2s}
+.scard:hover{transform:translateY(-3px);border-color:rgba(229,177,161,0.35)}
+.simg{height:108px;background:linear-gradient(135deg,#1a1410,#0a0808);display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative}
+.sbadge{position:absolute;top:8px;left:8px;font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;background:linear-gradient(135deg,var(--rose),var(--rose2));color:#3a1a10;letter-spacing:0.05em}
+.sheart{position:absolute;top:8px;right:8px;font-size:1rem}
+.sbody{padding:12px}
+.sbrand{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.32);margin-bottom:3px}
+.sname{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px}
+.sprice{font-size:13px;font-weight:700;color:var(--gold2);margin-bottom:9px}
+.sbuy{width:100%;padding:8px;background:var(--rose);border:none;border-radius:8px;color:#3a1a10;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+.sbuy:hover{opacity:0.85}
 
-.profile-topbar {
-  position:sticky; top:0; z-index:10;
-  padding:16px 24px; display:flex; align-items:center; justify-content:space-between;
-  background:rgba(0,0,0,0.2); backdrop-filter:blur(40px);
-  border-radius:12px; margin:16px; border:0.5px solid rgba(255,255,255,0.18);
-  box-shadow:0 0 20px rgba(229,177,161,0.12);
-}
-.profile-topbar-left { display:flex; align-items:center; gap:10px; }
-.profile-avatar-sm   { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#E5B1A1,#c88060); display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:0.5px solid rgba(255,255,255,0.3); }
-.profile-topbar-name { font-family:'Noto Serif',serif; font-size:18px; font-weight:300; letter-spacing:0.2em; color:#E5B1A1; text-shadow:0 0 10px rgba(229,177,161,0.4); }
-.profile-topbar .mat-icon { font-family:'Material Symbols Outlined'; font-size:22px; color:#E5B1A1; cursor:pointer; }
+/* ═══════════════════════════════════════
+   PROFILE SCREEN  (Radiance Revealed)
+═══════════════════════════════════════ */
+#profileScreen{background:var(--bg2);overflow:hidden;display:flex;flex-direction:column}
 
-.profile-hero { padding:0 24px 32px; text-align:center; }
-.prof-eyebrow { font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:var(--primary); display:block; margin-bottom:14px; }
-.prof-display {
-  font-family:'Noto Serif',serif; font-size:44px; font-weight:300;
-  letter-spacing:-0.02em; color:var(--on-surface); line-height:1.1; margin-bottom:12px;
+.prof-topbar{
+  flex-shrink:0;margin:16px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.15);border-radius:14px;
+  padding:12px 18px;box-shadow:0 0 22px rgba(229,177,161,0.1);
 }
-.prof-sub { font-size:15px; font-weight:300; color:var(--on-surface-var); line-height:1.6; max-width:280px; margin:0 auto 40px; }
+.prof-topbar-l{display:flex;align-items:center;gap:10px}
+.prof-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--rose),#c88060);display:flex;align-items:center;justify-content:center;font-size:1rem;border:0.5px solid rgba(255,255,255,0.25)}
+.prof-brand{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;letter-spacing:0.2em;color:var(--rose);text-shadow:0 0 10px rgba(229,177,161,0.4)}
+.prof-topbar .ms{font-family:'Material Symbols Outlined';font-size:21px;color:var(--rose);cursor:pointer}
 
-/* Glow score ring */
-.glow-ring-wrap { display:flex; justify-content:center; margin-bottom:48px; position:relative; }
-.glow-ring {
-  width:220px; height:220px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center; position:relative;
+.prof-scroll{overflow-y:auto;flex:1;padding-bottom:80px}
+
+.prof-hero{padding:4px 24px 32px;text-align:center}
+.prof-eye{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--rose);display:block;margin-bottom:14px}
+.prof-disp{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;letter-spacing:-0.01em;color:var(--text);line-height:1.1;margin-bottom:12px}
+.prof-sub{font-size:14px;font-weight:300;color:var(--text-m);line-height:1.65;max-width:280px;margin:0 auto 36px}
+
+/* Glow ring */
+.gring-wrap{display:flex;justify-content:center;margin-bottom:44px;position:relative;width:fit-content;margin-left:auto;margin-right:auto}
+.gring{width:220px;height:220px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
+.gring-outer{position:absolute;inset:0;border-radius:50%;border:0.5px solid rgba(255,255,255,0.09)}
+.gring-conic{position:absolute;inset:7px;border-radius:50%;background:conic-gradient(from 180deg,#e5b1a1 0deg,rgba(229,177,161,0) 318deg,#e5b1a1 360deg);opacity:0.42}
+.gring-inner{
+  width:156px;height:156px;border-radius:50%;z-index:1;
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.15);
+  box-shadow:0 0 40px rgba(229,177,161,0.16);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.glow-ring-outer { position:absolute; inset:0; border-radius:50%; border:0.5px solid rgba(255,255,255,0.1); }
-.glow-ring-conic {
-  position:absolute; inset:6px; border-radius:50%;
-  background:conic-gradient(from 180deg, #E5B1A1 0deg, rgba(229,177,161,0) 316deg, #E5B1A1 360deg);
-  opacity:0.45;
-}
-.glow-ring-inner {
-  width:160px; height:160px; border-radius:50%;
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.18);
-  box-shadow:0 0 40px rgba(229,177,161,0.18);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1;
-}
-.glow-label  { font-family:'Space Grotesk',sans-serif; font-size:9px; letter-spacing:0.18em; color:var(--primary); text-transform:uppercase; }
-.glow-num    { font-family:'Noto Serif',serif; font-size:58px; font-weight:300; color:var(--on-surface); line-height:1; }
-.glow-denom  { font-family:'Noto Serif',serif; font-size:18px; color:rgba(229,177,161,0.5); }
-.glow-peak   { display:flex; align-items:center; gap:5px; margin-top:6px; }
-.glow-peak-dot { width:7px; height:7px; border-radius:50%; background:#63f7ff; box-shadow:0 0 8px #63f7ff; }
-.glow-peak-txt { font-family:'Space Grotesk',sans-serif; font-size:9px; letter-spacing:0.12em; color:#63f7ff; text-transform:uppercase; }
-/* Corner brackets */
-.glow-ring-wrap .corner { position:absolute; width:20px; height:20px; }
-.corner.tr { top:-8px; right:-8px; border-top:1px solid rgba(229,177,161,0.5); border-right:1px solid rgba(229,177,161,0.5); border-radius:0 6px 0 0; }
-.corner.bl { bottom:-8px; left:-8px; border-bottom:1px solid rgba(229,177,161,0.5); border-left:1px solid rgba(229,177,161,0.5); border-radius:0 0 0 6px; }
+.gring-lbl{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.18em;color:var(--rose);text-transform:uppercase}
+.gring-num{font-family:'Cormorant Garamond',serif;font-size:60px;font-weight:300;color:var(--text);line-height:1}
+.gring-den{font-family:'Cormorant Garamond',serif;font-size:17px;color:rgba(229,177,161,0.45)}
+.gring-peak{display:flex;align-items:center;gap:5px;margin-top:5px}
+.gring-pdot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.gring-ptxt{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.12em;color:var(--cyan);text-transform:uppercase}
+.corner{position:absolute;width:20px;height:20px}
+.corner.tr{top:-6px;right:-6px;border-top:1px solid rgba(229,177,161,0.5);border-right:1px solid rgba(229,177,161,0.5);border-radius:0 6px 0 0}
+.corner.bl{bottom:-6px;left:-6px;border-bottom:1px solid rgba(229,177,161,0.5);border-left:1px solid rgba(229,177,161,0.5);border-radius:0 0 0 6px}
 
 /* Skin wins */
-.skin-wins-title { font-family:'Noto Serif',serif; font-size:26px; font-weight:400; color:var(--on-surface); padding:0 24px 16px; }
-.wins-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 24px 32px; }
-.win-card {
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.12); border-radius:16px;
-  padding:20px 16px; display:flex; flex-direction:column; gap:8px;
-}
-.win-icon .mat-icon { font-family:'Material Symbols Outlined'; font-size:28px; color:var(--primary); }
-.win-name { font-family:'Noto Serif',serif; font-size:15px; font-weight:400; color:var(--on-surface); }
-.win-desc { font-size:12px; color:var(--on-surface-var); line-height:1.5; }
+.sw-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);padding:0 24px 14px}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px 28px}
+.swcard{background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 14px;display:flex;flex-direction:column;gap:8px}
+.swcard .ms{font-family:'Material Symbols Outlined';font-size:27px;font-variation-settings:'FILL' 1}
+.swcard .ms.rose{color:var(--rose)}
+.swcard .ms.cyan{color:var(--cyan)}
+.swcard h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--text)}
+.swcard p{font-size:12px;color:var(--text-m);line-height:1.5}
 
 /* Dermal trajectory */
-.trajectory-card {
-  margin:0 24px 32px;
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(40px);
-  border:0.5px solid rgba(255,255,255,0.12); border-radius:20px;
-  padding:28px; position:relative; overflow:hidden;
-}
-.traj-top { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; }
-.traj-title { font-family:'Noto Serif',serif; font-size:22px; font-weight:400; color:var(--on-surface); }
-.traj-sub   { font-size:12px; color:var(--on-surface-var); }
-.traj-pct   { font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.1em; color:var(--primary); font-weight:600; }
-.traj-bars  { display:flex; align-items:flex-end; justify-content:space-between; height:120px; gap:8px; }
-.traj-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
-.traj-bar { width:100%; border-radius:3px 3px 0 0; transition:background 0.2s; background:rgba(255,255,255,0.06); }
-.traj-bar.current { background:rgba(229,177,161,0.75); box-shadow:0 0 15px rgba(229,177,161,0.3); }
-.traj-bar:hover { background:rgba(255,255,255,0.12); }
-.traj-bar.current:hover { background:rgba(229,177,161,0.85); }
-.traj-month { font-family:'Space Grotesk',sans-serif; font-size:9px; letter-spacing:0.1em; color:rgba(255,255,255,0.35); text-transform:uppercase; }
-.traj-month.current { color:var(--primary); }
-.traj-divider { position:absolute; top:50%; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(229,177,161,0.15),transparent); }
+.traj{margin:0 24px 28px;background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:26px;position:relative;overflow:hidden}
+.traj-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+.traj-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text)}
+.traj-sub{font-size:12px;color:var(--text-m)}
+.traj-pct{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;color:var(--rose);font-weight:600}
+.traj-bars{display:flex;align-items:flex-end;justify-content:space-between;height:112px;gap:8px}
+.tbar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+.tbar{width:100%;border-radius:3px 3px 0 0;background:rgba(255,255,255,0.06);transition:background 0.2s}
+.tbar.cur{background:rgba(229,177,161,0.72);box-shadow:0 0 14px rgba(229,177,161,0.28)}
+.tbar:hover{background:rgba(255,255,255,0.12)}
+.tbar.cur:hover{background:rgba(229,177,161,0.88)}
+.tmonth{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase}
+.tmonth.cur{color:var(--rose)}
+.traj-line{position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(229,177,161,0.14),transparent)}
 
 /* IG Share */
-.ig-wrap { padding:0 24px 40px; display:flex; flex-direction:column; align-items:center; gap:12px; }
-.ig-btn {
-  width:100%; max-width:340px; padding:18px;
-  border:none; border-radius:999px; cursor:pointer;
-  background:radial-gradient(circle at 30% 107%, #fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);
-  display:flex; align-items:center; justify-content:center; gap:12px;
-  box-shadow:0 8px 30px rgba(0,0,0,0.4);
-  transition:transform 0.2s; position:relative; overflow:hidden;
+.ig-wrap{padding:0 24px 32px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ig-btn{
+  width:100%;max-width:340px;padding:18px;border:none;border-radius:999px;cursor:pointer;
+  background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.45);transition:transform 0.2s;
 }
-.ig-btn:hover { transform:scale(1.02); }
-.ig-btn:active { transform:scale(0.97); }
-.ig-btn span { font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:0.2em; font-weight:700; color:#fff; text-transform:uppercase; }
-.ig-btn svg  { flex-shrink:0; }
-.ig-credit   { font-size:11px; color:rgba(255,255,255,0.35); }
+.ig-btn:hover{transform:scale(1.02)}
+.ig-btn:active{transform:scale(0.97)}
+.ig-btn span{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:0.2em;font-weight:700;color:#fff;text-transform:uppercase}
+.ig-credit{font-size:11px;color:rgba(255,255,255,0.3)}
 
-/* ══════════════════════════════════════
-   SHOP SCREEN
-══════════════════════════════════════ */
-#shopScreen { background:var(--background); overflow-y:auto; }
-.shop-header { padding:56px 24px 16px; background:linear-gradient(160deg,rgba(30,20,16,1) 0%,var(--background) 100%); border-bottom:0.5px solid rgba(255,255,255,0.08); }
-.shop-header h2 { font-family:'Noto Serif',serif; font-size:28px; font-weight:400; color:var(--on-surface); margin-bottom:4px; }
-.shop-header p  { font-size:13px; color:var(--on-surface-var); }
-.filter-row { display:flex; gap:8px; padding:12px 24px; overflow-x:auto; scrollbar-width:none; }
-.filter-row::-webkit-scrollbar { display:none; }
-.fchip {
-  flex-shrink:0; padding:7px 16px; border-radius:999px;
-  font-family:'Space Grotesk',sans-serif; font-size:11px; letter-spacing:0.1em; font-weight:500;
-  border:0.5px solid rgba(255,255,255,0.14); color:rgba(255,255,255,0.55); background:transparent;
-  cursor:pointer; transition:all 0.2s;
+/* Settings rows */
+.prof-settings{padding:0 24px 100px}
+.prof-sec-lbl{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin:0 0 10px}
+.prof-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:background 0.2s;
 }
-.fchip.active { border-color:#E5B1A1; color:#E5B1A1; background:rgba(229,177,161,0.12); }
-.shop-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:8px 24px 100px; }
-.shop-card {
-  background:rgba(0,0,0,0.3); border:0.5px solid rgba(255,255,255,0.1); border-radius:16px; overflow:hidden;
-  cursor:pointer; transition:transform 0.2s, border-color 0.2s;
-}
-.shop-card:hover { transform:translateY(-3px); border-color:rgba(229,177,161,0.35); }
-.shop-img { height:110px; background:linear-gradient(135deg,#1a1614,#0d0a08); display:flex; align-items:center; justify-content:center; font-size:2.8rem; position:relative; }
-.shop-badge { position:absolute; top:8px; left:8px; font-family:'Space Grotesk',sans-serif; font-size:9px; font-weight:700; padding:3px 8px; border-radius:4px; background:linear-gradient(135deg,#E5B1A1,#d4956a); color:#3a1f15; letter-spacing:0.06em; }
-.shop-heart { position:absolute; top:8px; right:8px; font-size:1rem; }
-.shop-body { padding:12px; }
-.shop-brand { font-family:'Space Grotesk',sans-serif; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:3px; }
-.shop-name  { font-size:12px; font-weight:600; color:var(--on-surface); line-height:1.3; margin-bottom:4px; }
-.shop-price { font-size:13px; font-weight:700; color:#E5B1A1; margin-bottom:10px; }
-.shop-buy   { width:100%; padding:8px; background:var(--primary-container); border:none; border-radius:8px; color:#3a1f15; font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.06em; cursor:pointer; transition:opacity 0.2s; }
-.shop-buy:hover { opacity:0.85; }
+.prof-row:hover{background:rgba(255,255,255,0.07)}
+.prof-row-l{display:flex;align-items:center;gap:12px}
+.prof-row-l span:first-child{font-size:1.1rem}
+.prof-row-l span:last-child{font-size:14px;color:var(--text)}
+.prof-row .ms{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.22)}
 
-/* ══════════════════════════════════════
+/* ═══════════════════════════════════════
    BOTTOM NAV
-══════════════════════════════════════ */
-#bottomNav {
-  position:absolute; bottom:0; left:0; right:0; z-index:100;
-  display:flex; justify-content:space-around; align-items:center;
-  padding:10px 8px 20px; padding-bottom:calc(10px + env(safe-area-inset-bottom, 0));
-  background:rgba(0,0,0,0.4); backdrop-filter:blur(40px);
-  border-top:0.5px solid rgba(255,255,255,0.2);
-  border-radius:16px 16px 0 0;
-  box-shadow:0 -10px 30px rgba(0,0,0,0.5);
+═══════════════════════════════════════ */
+#bottomNav{
+  position:absolute;bottom:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
+  background:rgba(0,0,0,0.48);backdrop-filter:blur(40px);
+  border-top:0.5px solid rgba(255,255,255,0.16);
+  border-radius:18px 18px 0 0;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.55);
 }
-.nav-tab { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px 12px; transition:all 0.2s; color:rgba(255,255,255,0.4); }
-.nav-tab:hover { color:rgba(255,255,255,0.7); }
-.nav-tab.active { color:#E5B1A1; filter:drop-shadow(0 0 8px rgba(229,177,161,0.6)); }
-.nav-tab .mat-icon { font-family:'Material Symbols Outlined'; font-size:22px; transition:font-variation-settings 0.2s; }
-.nav-tab.active .mat-icon { font-variation-settings:'FILL' 1; }
-.nav-lbl { font-family:'Noto Serif',serif; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; }
+.ntab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;transition:all 0.2s;color:rgba(255,255,255,0.38)}
+.ntab:hover{color:rgba(255,255,255,0.65)}
+.ntab.active{color:var(--rose);filter:drop-shadow(0 0 8px rgba(229,177,161,0.55))}
+.ntab .ms{font-family:'Material Symbols Outlined';font-size:22px;transition:font-variation-settings 0.2s}
+.ntab.active .ms{font-variation-settings:'FILL' 1}
+.ntab-lbl{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase}
 
-/* ══════════════════════════════════════
+/* ═══════════════════════════════════════
    TOAST
-══════════════════════════════════════ */
-#toast {
-  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(10px);
-  background:rgba(0,0,0,0.7); backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.2); border-radius:999px;
-  padding:10px 22px; font-family:'Space Grotesk',sans-serif; font-size:12px; letter-spacing:0.06em;
-  color:#fff; white-space:nowrap; opacity:0; transition:opacity 0.3s,transform 0.3s;
-  z-index:500; pointer-events:none;
+═══════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.18);border-radius:999px;
+  padding:9px 22px;font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:0.06em;
+  color:#fff;white-space:nowrap;opacity:0;transition:opacity 0.3s,transform 0.3s;
+  z-index:500;pointer-events:none;
 }
-#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* BG decorative gradient */
-.bg-deco {
-  position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.4;
-}
-.bg-deco::before { content:''; position:absolute; top:-10%; right:-10%; width:50%; height:50%; background:rgba(229,177,161,0.1); border-radius:50%; filter:blur(120px); }
-.bg-deco::after  { content:''; position:absolute; bottom:-10%; left:-10%; width:50%; height:50%; background:rgba(0,220,229,0.05); border-radius:50%; filter:blur(120px); }
-
+/* BG ambient */
+.bg-ambient{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-ambient::before{content:'';position:absolute;top:-10%;right:-10%;width:50%;height:50%;background:rgba(229,177,161,0.08);border-radius:50%;filter:blur(120px)}
+.bg-ambient::after{content:'';position:absolute;bottom:-10%;left:-10%;width:50%;height:50%;background:rgba(99,247,255,0.04);border-radius:50%;filter:blur(120px)}
 </style>
 </head>
 <body>
 <div id="app">
-<div class="bg-deco"></div>
-<div id="flashEl"></div>
+<div class="bg-ambient"></div>
+<div id="flash"></div>
 
-<!-- ══ ONBOARDING ══ -->
+<!-- ══════════════════════════════════════
+     ONBOARDING
+══════════════════════════════════════ -->
 <div id="onboardScreen" class="screen active">
-  <div class="ob-header glass" style="margin:16px;border-radius:12px;">
-    <span class="ob-logo" style="font-size:14px;letter-spacing:0.15em;">VIBE MIRROR AI</span>
-    <span class="material-symbols-outlined" style="color:#E5B1A1;">auto_awesome</span>
+  <div class="ob-header glass">
+    <div>
+      <div class="ob-brand">VIBE MIRROR AI<span>LUXURY BEAUTY INTELLIGENCE</span></div>
+    </div>
+    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';color:var(--rose);font-size:22px">auto_awesome</span>
   </div>
   <div class="ob-body">
-    <h1 class="ob-title shimmer-text">Begin Your<br/>Evolution</h1>
-    <p class="ob-sub">Welcome to Vibe Mirror AI. Let us calibrate your hyper-personalized beauty ritual.</p>
+    <h1 class="ob-display shimmer">Begin Your<br/>Evolution</h1>
+    <p class="ob-sub">Welcome to Vibe Mirror AI. Let us calibrate your hyper-personalised beauty ritual.</p>
 
     <div class="ob-dots">
       <div class="ob-dot active" id="d0"></div>
@@ -763,156 +713,157 @@ html, body {
       <div class="ob-dot" id="d3"></div>
     </div>
 
-    <!-- Step 0: Name + Gender -->
+    <!-- Step 0 : Name + Gender -->
     <div class="ob-step active" id="s0">
-      <div class="glass" style="padding:20px;border-radius:14px;">
-        <div class="ob-section-label">Consultation Profile</div>
-        <div style="position:relative;margin-top:10px;">
-          <input class="ob-input" id="nameInput" type="text" placeholder="Full Name" maxlength="30" autocomplete="off"/>
-          <div id="nameUnderline" style="height:1px;width:0;background:#63f7ff;transition:width 0.6s;"></div>
-        </div>
-        <div class="gender-row" style="margin-top:16px;">
-          <div class="gender-card" id="gMale" onclick="selectGender('male')">
-            <span class="material-symbols-outlined mat-icon">male</span>
-            <span>MALE</span>
+      <div class="glass ob-card">
+        <div class="ob-lbl">Consultation Profile</div>
+        <input class="ob-input" id="nameInput" type="text" placeholder="Your full name…" maxlength="30" autocomplete="off"
+               oninput="document.getElementById('nameUnderline').style.width=this.value?'100%':'0'"/>
+        <div id="nameUnderline" style="height:1px;width:0;background:var(--cyan);transition:width 0.6s;margin-top:2px"></div>
+        <div class="g-grid">
+          <div class="g-card sel" id="gF" onclick="selGender('female')">
+            <span class="material-symbols-outlined ms">female</span>
+            <span class="gl">FEMALE</span>
           </div>
-          <div class="gender-card" id="gFemale" onclick="selectGender('female')">
-            <span class="material-symbols-outlined mat-icon">female</span>
-            <span>FEMALE</span>
+          <div class="g-card" id="gM" onclick="selGender('male')">
+            <span class="material-symbols-outlined ms">male</span>
+            <span class="gl">MALE</span>
           </div>
         </div>
       </div>
       <button class="ob-next" onclick="goStep(1)">Continue →</button>
-      <div class="ob-skip" onclick="skipOnboard()">Skip for now</div>
+      <div class="ob-skip" onclick="skipOB()">Skip for now</div>
     </div>
 
-    <!-- Step 1: Voice -->
+    <!-- Step 1 : Voice -->
     <div class="ob-step" id="s1">
-      <div style="font-family:'Noto Serif',serif;font-size:20px;color:var(--on-surface);margin-bottom:4px;">Choose Your Guide's Voice</div>
-      <div class="voice-grid">
-        <div class="voice-card selected" id="vc-sweet" onclick="selectVoice('sweet')">
-          <span class="material-symbols-outlined mat-icon">volume_up</span>
-          <div class="vc-name">Sweet</div><div class="vc-sub">Gentle &amp; Airy</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Choose Your Guide's Voice</div>
+      <div class="v-grid">
+        <div class="v-card sel" id="vc0" onclick="selVoice('sweet')">
+          <span class="material-symbols-outlined ms">volume_up</span>
+          <div class="vn">Sweet</div><div class="vs">Gentle &amp; Airy</div>
         </div>
-        <div class="voice-card" id="vc-pro" onclick="selectVoice('pro')">
-          <span class="material-symbols-outlined mat-icon" style="color:#63f7ff;">verified</span>
-          <div class="vc-name">Professional</div><div class="vc-sub">Direct &amp; Precise</div>
+        <div class="v-card" id="vc1" onclick="selVoice('pro')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">verified</span>
+          <div class="vn">Professional</div><div class="vs">Direct &amp; Precise</div>
         </div>
-        <div class="voice-card" id="vc-deep" onclick="selectVoice('deep')">
-          <span class="material-symbols-outlined mat-icon" style="color:#63f7ff;">graphic_eq</span>
-          <div class="vc-name">Deep</div><div class="vc-sub">Resonant &amp; Rich</div>
+        <div class="v-card" id="vc2" onclick="selVoice('deep')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">graphic_eq</span>
+          <div class="vn">Deep</div><div class="vs">Resonant &amp; Rich</div>
         </div>
-        <div class="voice-card" id="vc-calm" onclick="selectVoice('calm')">
-          <span class="material-symbols-outlined mat-icon" style="color:#63f7ff;">spa</span>
-          <div class="vc-name">Calm</div><div class="vc-sub">Zen &amp; Soothing</div>
+        <div class="v-card" id="vc3" onclick="selVoice('calm')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">spa</span>
+          <div class="vn">Calm</div><div class="vs">Zen &amp; Soothing</div>
         </div>
       </div>
       <button class="ob-next" onclick="goStep(2)">Continue →</button>
     </div>
 
-    <!-- Step 2: Biological -->
+    <!-- Step 2 : Biological Calibration -->
     <div class="ob-step" id="s2">
-      <div style="font-family:'Noto Serif',serif;font-size:20px;color:var(--on-surface);margin-bottom:4px;">Biological Calibration</div>
-      <div class="glass" style="padding:22px;border-radius:14px;display:flex;flex-direction:column;gap:20px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Biological Calibration</div>
+      <div class="glass ob-card" style="display:flex;flex-direction:column;gap:18px">
         <div>
-          <div class="ob-section-label" style="margin-bottom:14px;">Melanin Scale</div>
-          <div class="melanin-row">
-            <div class="swatch" style="background:#F9E4D4;" onclick="selectSwatch(this)"></div>
-            <div class="swatch" style="background:#E8C2A0;" onclick="selectSwatch(this)"></div>
-            <div class="swatch" style="background:#D19D7A;" onclick="selectSwatch(this)"></div>
-            <div class="swatch selected" style="background:#A5673F;" onclick="selectSwatch(this)"></div>
-            <div class="swatch" style="background:#71492E;" onclick="selectSwatch(this)"></div>
-            <div class="swatch" style="background:#3C2219;" onclick="selectSwatch(this)"></div>
+          <div class="ob-lbl" style="margin-bottom:14px">Melanin Scale</div>
+          <div class="mel-row">
+            <div class="swatch" style="background:#F9E4D4" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#E8C2A0" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#D19D7A" onclick="selSwatch(this)"></div>
+            <div class="swatch sel" style="background:#A5673F" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#71492E" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#3C2219" onclick="selSwatch(this)"></div>
           </div>
         </div>
         <div>
-          <div class="ob-section-label" style="margin-bottom:10px;">Skin Composition</div>
-          <div class="skin-chips">
-            <div class="skin-chip selected" onclick="toggleChip(this)">Combination</div>
-            <div class="skin-chip" onclick="toggleChip(this)">Oily</div>
-            <div class="skin-chip" onclick="toggleChip(this)">Dry</div>
-            <div class="skin-chip" onclick="toggleChip(this)">Sensitive</div>
+          <div class="ob-lbl" style="margin-bottom:10px">Skin Composition</div>
+          <div class="chips">
+            <div class="chip sel" onclick="togChip(this)">Combination</div>
+            <div class="chip" onclick="togChip(this)">Oily</div>
+            <div class="chip" onclick="togChip(this)">Dry</div>
+            <div class="chip" onclick="togChip(this)">Sensitive</div>
           </div>
         </div>
       </div>
       <button class="ob-next" onclick="goStep(3)">Continue →</button>
     </div>
 
-    <!-- Step 3: Goal + CTA -->
+    <!-- Step 3 : Goal + CTA -->
     <div class="ob-step" id="s3">
-      <div style="font-family:'Noto Serif',serif;font-size:20px;color:var(--on-surface);margin-bottom:4px;">The Prime Objective</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">The Prime Objective</div>
       <div class="goal-list">
-        <div class="goal-row" onclick="selectGoal(this,'Anti-aging')">
-          <div class="goal-icon">🌿</div>
+        <div class="goal-row" onclick="selGoal(this,'Anti-aging')">
+          <div class="goal-emoji">🌿</div>
           <div class="goal-info"><div class="goal-name">Anti-aging</div><div class="goal-sub">Cellular regeneration &amp; lift</div></div>
-          <span class="material-symbols-outlined mat-icon-arrow">arrow_forward_ios</span>
+          <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
         </div>
-        <div class="goal-row selected" onclick="selectGoal(this,'Radiant Glow')">
-          <div class="goal-icon">✨</div>
+        <div class="goal-row sel" onclick="selGoal(this,'Radiant Glow')">
+          <div class="goal-emoji">✨</div>
           <div class="goal-info"><div class="goal-name">Radiant Glow</div><div class="goal-sub">Illuminated vitality &amp; tone</div></div>
-          <span class="material-symbols-outlined mat-icon-arrow" style="font-variation-settings:'FILL' 1;color:#E5B1A1;">check_circle</span>
+          <span class="material-symbols-outlined goal-arrow" style="font-variation-settings:'FILL' 1;color:var(--rose)">check_circle</span>
         </div>
-        <div class="goal-row" onclick="selectGoal(this,'Acne-free')">
-          <div class="goal-icon">💧</div>
+        <div class="goal-row" onclick="selGoal(this,'Acne-free')">
+          <div class="goal-emoji">💧</div>
           <div class="goal-info"><div class="goal-name">Acne-free</div><div class="goal-sub">Microbiome balance &amp; clarity</div></div>
-          <span class="material-symbols-outlined mat-icon-arrow">arrow_forward_ios</span>
+          <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
         </div>
-        <div class="goal-row" onclick="selectGoal(this,'Party Ready')">
-          <div class="goal-icon">💃</div>
+        <div class="goal-row" onclick="selGoal(this,'Party Ready')">
+          <div class="goal-emoji">💃</div>
           <div class="goal-info"><div class="goal-name">Party Ready</div><div class="goal-sub">Bold, unforgettable looks</div></div>
-          <span class="material-symbols-outlined mat-icon-arrow">arrow_forward_ios</span>
+          <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
         </div>
       </div>
-      <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:14px;">
-        <div class="privacy-badge">
-          <span class="material-symbols-outlined mat-icon" style="font-family:'Material Symbols Outlined';">shield</span>
+      <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div class="priv-badge">
+          <span class="material-symbols-outlined ms">shield</span>
           Face data stays on device
         </div>
-        <button class="ob-cta" onclick="finishOnboard()">Enter the Mirror</button>
-        <p style="font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.25);text-transform:uppercase;">By entering, you agree to our private ritual protocol</p>
+        <button class="ob-cta" onclick="finishOB()">Enter the Mirror</button>
+        <p style="font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.22);text-transform:uppercase">By entering, you agree to our private ritual protocol</p>
       </div>
     </div>
 
   </div><!-- ob-body -->
 </div><!-- onboardScreen -->
 
-<!-- ══ MIRROR SCREEN ══ -->
+<!-- ══════════════════════════════════════
+     MIRROR SCREEN
+══════════════════════════════════════ -->
 <div id="mirrorScreen" class="screen">
 
-  <!-- Gamebar top -->
+  <!-- Top HUD -->
   <div class="mirror-top">
-    <div class="gamebar-chip">
-      <div class="gc-col"><span class="gc-label">Daily Streak</span><span class="gc-val streak" id="streakVal">1</span></div>
-      <div class="gc-divider"></div>
-      <div class="gc-col"><span class="gc-label">Glow Coins</span><span class="gc-val coins" id="coinsVal">0</span></div>
+    <div class="gamebar">
+      <div class="gc-col"><span class="gc-lbl">Daily Streak</span><span class="gc-val gc-streak" id="streakVal">1</span></div>
+      <div class="gc-div"></div>
+      <div class="gc-col"><span class="gc-lbl">Glow Coins</span><span class="gc-val gc-coins" id="coinsVal">0</span></div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <div class="flash-btn" id="soundBtn" onclick="toggleSound()" title="Toggle Voice">
-        <span class="material-symbols-outlined mat-icon" style="font-family:'Material Symbols Outlined';font-size:22px;color:#E5B1A1;">volume_up</span>
+    <div class="top-btns">
+      <div class="icon-btn" id="soundBtn" onclick="toggleSound()" title="Voice toggle">
+        <span class="material-symbols-outlined ms">volume_up</span>
       </div>
-      <div class="flash-btn" onclick="triggerFlash()" title="Studio Flash">
-        <span class="material-symbols-outlined mat-icon" style="font-family:'Material Symbols Outlined';font-size:22px;color:#E5B1A1;">wb_sunny</span>
+      <div class="icon-btn" onclick="triggerFlash()" title="Studio flash">
+        <span class="material-symbols-outlined ms">wb_sunny</span>
       </div>
     </div>
   </div>
 
-  <!-- Brand center -->
-  <div class="mirror-brand" style="font-size:16px;letter-spacing:0.15em;">VIBE MIRROR AI</div>
+  <!-- Brand watermark -->
+  <div class="mirror-brand">VIBE MIRROR AI<small>LUXURY BEAUTY INTELLIGENCE</small></div>
 
-  <!-- Camera -->
+  <!-- Camera layers -->
   <video id="videoEl" playsinline muted autoplay></video>
   <canvas id="auraCanvas"></canvas>
   <canvas id="arCanvas"></canvas>
 
-  <!-- AR pill -->
+  <!-- AR guide pill -->
   <div class="ar-pill" id="arGuidePill">
-    <span class="material-symbols-outlined mat-icon" style="font-family:'Material Symbols Outlined';">auto_awesome</span>
+    <span class="material-symbols-outlined ms">auto_awesome</span>
     Real-Time AI Guide
   </div>
 
-  <!-- Cam placeholder -->
+  <!-- Camera placeholder -->
   <div id="camPlaceholder">
-    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:52px;color:rgba(255,255,255,0.2);">photo_camera</span>
+    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:56px;color:rgba(255,255,255,0.18)">photo_camera</span>
     <p>Allow camera access for your AI Beauty Mirror</p>
   </div>
 
@@ -922,79 +873,66 @@ html, body {
   </div>
 
   <!-- Bottom panel -->
-  <div class="mirror-bottom">
+  <div class="mirror-panel">
     <div class="score-row">
       <div>
         <div class="score-num" id="vibeNum">—</div>
         <div class="score-lbl">Vibe Score</div>
       </div>
-      <div class="sym-chip" id="symmetryChip">◈ —%</div>
+      <div class="sym-chip" id="symChip">◈ —%</div>
     </div>
-
-    <div class="score-bar-wrap">
-      <div class="score-bar-track">
-        <div class="score-bar-fill" id="vibeBar"></div>
+    <div class="bar-wrap">
+      <div class="bar-track"><div class="bar-fill" id="vibeBar"></div></div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-head">
+        <span class="material-symbols-outlined ms pulse" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+        <span class="comp-title" id="compTitle">"Your skin is glowing today!"</span>
       </div>
+      <div class="comp-sub" id="compSub">AI Analysis Reflection · Point face at camera &amp; tap Scan Skin.</div>
     </div>
-
-    <div class="compliment-card">
-      <div class="compliment-header">
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:18px;color:#63f7ff;font-variation-settings:'FILL' 1;animation:pulseAnim 3s infinite;">auto_awesome</span>
-        <span class="compliment-title" id="complimentTitle">"Your skin is glowing today!"</span>
-      </div>
-      <div class="compliment-sub" id="complimentEl">Vibe AI Analysis · Point face at camera &amp; tap Scan Skin.</div>
-    </div>
-
-    <div class="products-scroll" id="productsScroll"></div>
-
-    <div class="action-row">
-      <button class="act-btn btn-scan" id="hypeBtn" disabled onclick="triggerScan()">
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:18px;">center_focus_weak</span>
-        Scan Skin
+    <div class="prods" id="prodsRow"></div>
+    <div class="act-row">
+      <button class="abtn abtn-scan" id="scanBtn" disabled onclick="doScan()">
+        <span class="material-symbols-outlined ms">center_focus_weak</span>Scan Skin
       </button>
-      <button class="act-btn btn-ar" onclick="showGlowShare()">
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:18px;">face_retouching_natural</span>
-        Apply AR Look
+      <button class="abtn abtn-ar" onclick="goShare()">
+        <span class="material-symbols-outlined ms">face_retouching_natural</span>Apply AR Look
       </button>
     </div>
   </div>
 
 </div><!-- mirrorScreen -->
 
-<!-- ══ STYLIST SCREEN ══ -->
+<!-- ══════════════════════════════════════
+     STYLIST SCREEN
+══════════════════════════════════════ -->
 <div id="stylistScreen" class="screen">
-  <div class="screen-header">
-    <div class="logo" style="font-size:16px;letter-spacing:0.15em;">VIBE MIRROR AI</div>
-    <div class="hdr-title">Your Stylist</div>
-    <div class="hdr-sub">Pro consultations &amp; hyper-local tips</div>
+  <div class="sty-header">
+    <div class="sty-brand">VIBE MIRROR AI</div>
+    <div class="sty-title">Your Stylist</div>
+    <div class="sty-sub">Pro consultations &amp; hyper-local tips</div>
   </div>
-  <div style="overflow-y:auto;flex:1;padding-bottom:80px;">
-
-    <!-- Elite access -->
-    <div class="elite-card">
+  <div class="sty-scroll">
+    <div class="elite">
       <div class="elite-pulse"></div>
-      <div class="elite-eyebrow">Exclusive Access</div>
+      <div class="elite-eye">Exclusive Access</div>
       <div class="elite-title">Elite Stylist Session</div>
       <div class="elite-sub">Book a 1:1 digital residency with celebrity stylist Marcus Vane.</div>
-      <button class="elite-btn" onclick="showToast('Booking Marcus Vane...')">BOOK SESSION</button>
+      <button class="elite-btn" onclick="showToast('Booking Marcus Vane…')">BOOK SESSION</button>
     </div>
 
-    <!-- Chat messages -->
     <div class="chat-area">
-      <div class="chat-user">How can I maintain my glow in Bhopal? The dry heat is making my skin feel parched.</div>
+      <div class="chat-u">How can I maintain my glow in Bhopal? The dry heat is making my skin feel parched.</div>
       <div class="chat-ai">
-        <div class="chat-ai-avatar"><span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:14px;color:#E5B1A1;">auto_awesome</span></div>
-        <div class="chat-ai-bubble">
-          The dry heat in Bhopal requires a shift toward biomimetic hydration. Standard creams often evaporate too quickly in arid climates.<br/><br/>
-          I recommend incorporating a high-molecular weight moisture barrier to lock in serum benefits.
-        </div>
+        <div class="chat-ai-av"><span class="material-symbols-outlined ms" style="font-size:14px">auto_awesome</span></div>
+        <div class="chat-ai-b">The dry heat in Bhopal requires biomimetic hydration. Standard creams evaporate too quickly in arid climates.<br/><br/>I recommend a high-molecular weight moisture barrier to lock in serum benefits.</div>
       </div>
     </div>
 
-    <!-- Consultants -->
-    <div class="consultants">
-      <div class="consultant-row" onclick="showToast('Connecting to Vibe Architect AI...')">
-        <div class="con-avatar">🤖<div class="con-dot"></div></div>
+    <div class="cons-list">
+      <div class="con-row" onclick="showToast('Connecting to Vibe Architect AI…')">
+        <div class="con-av">🤖<div class="con-dot"></div></div>
         <div class="con-info">
           <div class="con-name">Vibe Architect AI</div>
           <div class="con-status">● ALWAYS AVAILABLE</div>
@@ -1002,8 +940,8 @@ html, body {
         </div>
         <div class="con-price">$1</div>
       </div>
-      <div class="consultant-row" onclick="showToast('Booking Sarah Jenkins...')">
-        <div class="con-avatar">💁<div class="con-dot"></div></div>
+      <div class="con-row" onclick="showToast('Booking Sarah Jenkins…')">
+        <div class="con-av">💁<div class="con-dot"></div></div>
         <div class="con-info">
           <div class="con-name">Sarah Jenkins</div>
           <div class="con-status">● ONLINE</div>
@@ -1013,164 +951,162 @@ html, body {
       </div>
     </div>
 
-    <!-- AR status -->
     <div class="ar-status">
-      <div class="ar-status-dot"></div>
-      <span class="ar-status-txt">Analyzing Climate Vectors: Bhopal, IN</span>
+      <div class="ar-dot"></div>
+      <span class="ar-txt">Analyzing Climate Vectors: Bhopal, IN</span>
     </div>
 
-    <!-- Apply -->
     <div class="apply-card">
       <h3>Professional Consultant?</h3>
       <p>Duniya bhar ke clients ko advice dein. Apply karein aur apna career grow karein.</p>
       <button class="apply-btn" onclick="showToast('Apply for $1 — Coming soon!')">APPLY FOR $1</button>
     </div>
 
-    <!-- Chat input -->
-    <div class="chat-input-wrap">
-      <div class="chat-input-row">
-        <input type="text" placeholder="Ask Vibe AI about your routine..."/>
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';">mic</span>
+    <div class="chat-iw">
+      <div class="chat-ir">
+        <input type="text" placeholder="Ask Vibe AI about your routine…"/>
+        <span class="material-symbols-outlined ms">mic</span>
         <div class="chat-send" onclick="showToast('AI Stylist — Coming soon!')">
-          <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';">arrow_upward</span>
+          <span class="material-symbols-outlined ms">arrow_upward</span>
         </div>
       </div>
     </div>
-
   </div>
 </div><!-- stylistScreen -->
 
-<!-- ══ SHOP SCREEN ══ -->
+<!-- ══════════════════════════════════════
+     SHOP SCREEN
+══════════════════════════════════════ -->
 <div id="shopScreen" class="screen">
-  <div class="shop-header">
+  <div class="shop-hdr">
     <h2>Shop the Look</h2>
     <p>Curated for your skin · Best Indian prices</p>
   </div>
-  <div class="filter-row" id="shopFilters">
-    <div class="fchip active" onclick="filterShop(this,'all')">All</div>
-    <div class="fchip" onclick="filterShop(this,'lips')">Lips</div>
-    <div class="fchip" onclick="filterShop(this,'eyes')">Eyes</div>
-    <div class="fchip" onclick="filterShop(this,'face')">Face</div>
-    <div class="fchip" onclick="filterShop(this,'skincare')">Skincare</div>
+  <div class="shop-scroll">
+    <div class="filter-row" id="filterRow">
+      <div class="fchip active" onclick="filterShop(this,'all')">All</div>
+      <div class="fchip" onclick="filterShop(this,'lips')">Lips</div>
+      <div class="fchip" onclick="filterShop(this,'eyes')">Eyes</div>
+      <div class="fchip" onclick="filterShop(this,'face')">Face</div>
+      <div class="fchip" onclick="filterShop(this,'skincare')">Skincare</div>
+    </div>
+    <div class="shop-grid" id="shopGrid"></div>
   </div>
-  <div class="shop-grid" id="shopGrid"></div>
 </div>
 
-<!-- ══ PROFILE (Radiance Revealed) ══ -->
+<!-- ══════════════════════════════════════
+     PROFILE SCREEN (Radiance Revealed)
+══════════════════════════════════════ -->
 <div id="profileScreen" class="screen">
-
-  <!-- Top bar with avatar + logo -->
-  <div class="profile-topbar">
-    <div class="profile-topbar-left">
-      <div class="profile-avatar-sm" id="profileAvatarSm">✨</div>
-      <span class="profile-topbar-name" style="font-size:15px;letter-spacing:0.15em;">VIBE MIRROR AI</span>
+  <div class="prof-topbar">
+    <div class="prof-topbar-l">
+      <div class="prof-av" id="profAv">✨</div>
+      <span class="prof-brand">VIBE MIRROR AI</span>
     </div>
-    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:22px;color:#E5B1A1;cursor:pointer;">auto_awesome</span>
+    <span class="material-symbols-outlined ms" style="font-size:21px;color:var(--rose);cursor:pointer">auto_awesome</span>
   </div>
-
-  <div style="overflow-y:auto;flex:1;padding-bottom:80px;">
-
-    <!-- Radiance Revealed hero -->
-    <div class="profile-hero">
-      <span class="prof-eyebrow">Your Aesthetic Evolution</span>
-      <div class="prof-display">Radiance<br/>Revealed</div>
+  <div class="prof-scroll">
+    <div class="prof-hero">
+      <span class="prof-eye">Your Aesthetic Evolution</span>
+      <div class="prof-disp">Radiance<br/>Revealed</div>
       <p class="prof-sub">A clinical distillation of your journey towards luminous perfection.</p>
     </div>
 
-    <!-- Glow score ring -->
-    <div class="glow-ring-wrap">
-      <div class="glow-ring">
-        <div class="glow-ring-outer"></div>
-        <div class="glow-ring-conic"></div>
-        <div class="glow-ring-inner">
-          <span class="glow-label">Glow Score</span>
-          <div style="display:flex;align-items:baseline;gap:2px;">
-            <span class="glow-num" id="profileScore">88</span>
-            <span class="glow-denom">/100</span>
+    <!-- Glow ring -->
+    <div class="gring-wrap">
+      <div class="gring">
+        <div class="gring-outer"></div>
+        <div class="gring-conic"></div>
+        <div class="gring-inner">
+          <span class="gring-lbl">Glow Score</span>
+          <div style="display:flex;align-items:baseline;gap:2px">
+            <span class="gring-num" id="profScore">88</span>
+            <span class="gring-den">/100</span>
           </div>
-          <div class="glow-peak"><div class="glow-peak-dot"></div><span class="glow-peak-txt">Peak Radiance</span></div>
+          <div class="gring-peak"><div class="gring-pdot"></div><span class="gring-ptxt">Peak Radiance</span></div>
         </div>
       </div>
       <div class="corner tr"></div>
       <div class="corner bl"></div>
     </div>
 
-    <!-- Skin Wins -->
-    <div class="skin-wins-title">Skin Wins</div>
-    <div class="wins-grid">
-      <div class="win-card">
-        <div class="win-icon"><span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:28px;color:var(--primary);font-variation-settings:'FILL' 1;">water_drop</span></div>
-        <div class="win-name">Hydrated</div>
-        <div class="win-desc">Cellular moisture levels increased by 24% since last month.</div>
+    <div class="sw-title">Skin Wins</div>
+    <div class="sw-grid">
+      <div class="swcard">
+        <span class="material-symbols-outlined ms rose">water_drop</span>
+        <h4>Hydrated</h4>
+        <p>Cellular moisture levels increased by 24% since last month.</p>
       </div>
-      <div class="win-card">
-        <div class="win-icon"><span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:28px;color:#63f7ff;font-variation-settings:'FILL' 1;">auto_fix_high</span></div>
-        <div class="win-name">Smooth Texture</div>
-        <div class="win-desc">Dermal surface irregularities reduced. Reflective index optimized.</div>
+      <div class="swcard">
+        <span class="material-symbols-outlined ms cyan">auto_fix_high</span>
+        <h4>Smooth Texture</h4>
+        <p>Dermal surface irregularities reduced. Reflective index optimized.</p>
       </div>
     </div>
 
-    <!-- Dermal Trajectory -->
-    <div class="trajectory-card">
+    <!-- Dermal trajectory -->
+    <div class="traj">
       <div class="traj-top">
         <div><div class="traj-title">Dermal Trajectory</div><div class="traj-sub">6-month skin health progression</div></div>
         <div class="traj-pct">+14.2% OVERALL</div>
       </div>
       <div class="traj-bars">
-        <div class="traj-bar-wrap"><div class="traj-bar" style="height:40%"></div><span class="traj-month">Jan</span></div>
-        <div class="traj-bar-wrap"><div class="traj-bar" style="height:55%"></div><span class="traj-month">Feb</span></div>
-        <div class="traj-bar-wrap"><div class="traj-bar" style="height:48%"></div><span class="traj-month">Mar</span></div>
-        <div class="traj-bar-wrap"><div class="traj-bar" style="height:70%"></div><span class="traj-month">Apr</span></div>
-        <div class="traj-bar-wrap"><div class="traj-bar" style="height:82%"></div><span class="traj-month">May</span></div>
-        <div class="traj-bar-wrap"><div class="traj-bar current" style="height:88%"></div><span class="traj-month current">Jun</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:40%"></div><span class="tmonth">Jan</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:55%"></div><span class="tmonth">Feb</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:48%"></div><span class="tmonth">Mar</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:70%"></div><span class="tmonth">Apr</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:82%"></div><span class="tmonth">May</span></div>
+        <div class="tbar-w"><div class="tbar cur" style="height:88%"></div><span class="tmonth cur">Jun</span></div>
       </div>
-      <div class="traj-divider"></div>
+      <div class="traj-line"></div>
     </div>
 
-    <!-- Instagram Share -->
+    <!-- IG Share -->
     <div class="ig-wrap">
-      <button class="ig-btn" onclick="showGlowShare()">
+      <button class="ig-btn" onclick="goShare()">
         <svg fill="white" height="22" viewBox="0 0 24 24" width="22"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
         <span>SHARE TO INSTAGRAM</span>
       </button>
       <p class="ig-credit">Visual storytelling powered by Vibe Mirror AI.</p>
     </div>
 
-    <!-- Settings rows -->
-    <div style="padding:0 24px 16px;">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:10px;">Settings</div>
-    </div>
-    <div style="padding:0 24px 100px;display:flex;flex-direction:column;gap:8px;">
-      <div onclick="showToast('🔒 All face data processed on-device only.')" style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
-        <div style="display:flex;align-items:center;gap:12px;"><span style="font-size:1.1rem;">🔒</span><span style="font-size:14px;">Privacy &amp; Data</span></div>
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.25);">arrow_forward_ios</span>
+    <div class="prof-settings">
+      <div class="prof-sec-lbl">Settings</div>
+      <div class="prof-row" onclick="showToast('🔒 All face data processed on-device only.')">
+        <div class="prof-row-l"><span>🔒</span><span>Privacy &amp; Data</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
       </div>
-      <div onclick="resetOnboard()" style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
-        <div style="display:flex;align-items:center;gap:12px;"><span style="font-size:1.1rem;">🔄</span><span style="font-size:14px;">Reset &amp; Re-calibrate</span></div>
-        <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.25);">arrow_forward_ios</span>
+      <div class="prof-row" onclick="showToast('Coming soon!')">
+        <div class="prof-row-l"><span>🎨</span><span>Skin Tone Preferences</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
+      </div>
+      <div class="prof-row" onclick="resetApp()">
+        <div class="prof-row-l"><span>🔄</span><span>Reset &amp; Re-calibrate</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
       </div>
     </div>
-
   </div>
 </div><!-- profileScreen -->
 
-<!-- ══ BOTTOM NAV ══ -->
-<nav id="bottomNav" style="display:none;">
-  <div class="nav-tab active" id="tab-mirror" onclick="switchTab('mirrorScreen',this)">
-    <span class="material-symbols-outlined nav-icon-m" style="font-family:'Material Symbols Outlined';font-size:22px;">face_5</span>
-    <span class="nav-lbl">Mirror</span>
+<!-- ══════════════════════════════════════
+     BOTTOM NAV
+══════════════════════════════════════ -->
+<nav id="bottomNav" style="display:none">
+  <div class="ntab active" id="nt-mirror" onclick="switchTab('mirrorScreen',this)">
+    <span class="material-symbols-outlined ms">face_5</span>
+    <span class="ntab-lbl">Mirror</span>
   </div>
-  <div class="nav-tab" id="tab-stylist" onclick="switchTab('stylistScreen',this)">
-    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:22px;">content_cut</span>
-    <span class="nav-lbl">Stylist</span>
+  <div class="ntab" id="nt-stylist" onclick="switchTab('stylistScreen',this)">
+    <span class="material-symbols-outlined ms">content_cut</span>
+    <span class="ntab-lbl">Stylist</span>
   </div>
-  <div class="nav-tab" id="tab-shop" onclick="switchTab('shopScreen',this);renderShop()">
-    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:22px;">shopping_bag</span>
-    <span class="nav-lbl">Shop</span>
+  <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this);renderShop()">
+    <span class="material-symbols-outlined ms">shopping_bag</span>
+    <span class="ntab-lbl">Shop</span>
   </div>
-  <div class="nav-tab" id="tab-profile" onclick="switchTab('profileScreen',this)">
-    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:22px;">person</span>
-    <span class="nav-lbl">Profile</span>
+  <div class="ntab" id="nt-profile" onclick="switchTab('profileScreen',this)">
+    <span class="material-symbols-outlined ms">person</span>
+    <span class="ntab-lbl">Profile</span>
   </div>
 </nav>
 
@@ -1179,17 +1115,16 @@ html, body {
 
 <script src="script.js"></script>
 <script>
-// ── NAV ──────────────────────────────────────────────────────────────────
+// ── NAV ───────────────────────────────────────────────────────────────────
 function switchTab(id, el) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
 }
 
-// ── ONBOARD UI ───────────────────────────────────────────────────────────
+// ── ONBOARD UI ────────────────────────────────────────────────────────────
 let obStep = 0;
-
 function goStep(n) {
   document.getElementById('s'+obStep).classList.remove('active');
   document.getElementById('d'+obStep).classList.remove('active');
@@ -1197,91 +1132,89 @@ function goStep(n) {
   document.getElementById('s'+n).classList.add('active');
   document.getElementById('d'+n).classList.add('active');
 }
-
-function selectGender(g) {
-  document.getElementById('gMale').classList.toggle('selected', g==='male');
-  document.getElementById('gFemale').classList.toggle('selected', g==='female');
+function selGender(g) {
+  document.getElementById('gF').classList.toggle('sel', g==='female');
+  document.getElementById('gM').classList.toggle('sel', g==='male');
+  if(window.UP) window.UP.gender = g;
 }
-
-function selectVoice(v) {
-  ['sweet','pro','deep','calm'].forEach(k => document.getElementById('vc-'+k).classList.toggle('selected', k===v));
-  speakText(v==='sweet'||v==='calm' ? "Hi! I'm Vibe AI, your beauty guide." : "Hello! I'm Marcus, your precision stylist.");
+function selVoice(v) {
+  ['vc0','vc1','vc2','vc3'].forEach((id,i)=>
+    document.getElementById(id).classList.toggle('sel', ['sweet','pro','deep','calm'][i]===v));
+  if(window.UP) window.UP.voice = v;
+  // Voice preview
+  const greet = v==='sweet'||v==='calm'
+    ? "Hi! I'm Vibe AI, your beauty guide."
+    : "Hello! I'm Marcus, your precision stylist.";
+  if(window.speakText) speakText(greet);
 }
-
-function selectSwatch(el) {
-  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
+function selSwatch(el) {
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
 }
-
-function toggleChip(el) { el.classList.toggle('selected'); }
-
-function selectGoal(el, g) {
+function togChip(el){ el.classList.toggle('sel') }
+function selGoal(el,g) {
   document.querySelectorAll('.goal-row').forEach(r=>{
-    r.classList.remove('selected');
-    r.querySelector('.mat-icon-arrow').textContent='arrow_forward_ios';
-    r.querySelector('.mat-icon-arrow').style.color='';
-    r.querySelector('.mat-icon-arrow').style.fontVariationSettings='';
+    r.classList.remove('sel');
+    const a=r.querySelector('.goal-arrow');
+    a.textContent='arrow_forward_ios';a.style.color='';a.style.fontVariationSettings='';
   });
-  el.classList.add('selected');
-  const arrow = el.querySelector('.mat-icon-arrow');
-  arrow.textContent='check_circle'; arrow.style.color='#E5B1A1'; arrow.style.fontVariationSettings="'FILL' 1";
+  el.classList.add('sel');
+  const a=el.querySelector('.goal-arrow');
+  a.textContent='check_circle';a.style.color='var(--rose)';a.style.fontVariationSettings="'FILL' 1";
+  if(window.UP) window.UP.goal = g;
 }
 
-// ── SHOP ─────────────────────────────────────────────────────────────────
-const SHOP_PRODUCTS = [
-  { emoji:'💋', brand:'Sugar Cosmetics', name:'Smudge Me Not Liquid Lipstick', price:'₹599', badge:'Bestseller', cat:'lips', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=sugar+smudge+me+not' },
-  { emoji:'🌟', brand:'Nykaa Cosmetics', name:'Skin Genius Foundation', price:'₹899', badge:'AI Pick', cat:'face', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=nykaa+skin+genius' },
-  { emoji:'✨', brand:'Dot & Key', name:'Glow Radiance Serum SPF 50', price:'₹695', badge:'New', cat:'skincare', platform:'amazon', url:'https://www.amazon.in/s?k=dot+key+glow+serum' },
-  { emoji:'👁️', brand:'Plum', name:'Eye Fix Kohl Kajal Waterproof', price:'₹249', badge:'Trending', cat:'eyes', platform:'myntra', url:'https://www.myntra.com/plum+kajal' },
-  { emoji:'💅', brand:'MyGlamm', name:'LIT Liquid Matte Lipstick', price:'₹349', badge:'Sale', cat:'lips', platform:'purplle', url:'https://www.purplle.com/search?q=myglamm+lit' },
-  { emoji:'🌸', brand:'Mamaearth', name:'Ubtan Face Wash Turmeric', price:'₹199', badge:'Natural', cat:'skincare', platform:'amazon', url:'https://www.amazon.in/s?k=mamaearth+ubtan' },
-  { emoji:'🎨', brand:'Lakme', name:'9to5 Weightless Mousse Foundation', price:'₹425', badge:'Classic', cat:'face', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=lakme+9to5' },
-  { emoji:'💎', brand:'Colorbar', name:'Smoky Eyes Palette', price:'₹799', badge:'AI Pick', cat:'eyes', platform:'nykaa', url:'https://www.nykaa.com/search/result/?q=colorbar+smoky+eyes' },
+// ── SHOP ──────────────────────────────────────────────────────────────────
+const PRODS = [
+  {e:'💋',brand:'Sugar Cosmetics',name:'Smudge Me Not Liquid Lipstick',price:'₹599',badge:'Bestseller',cat:'lips',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=sugar+smudge+me+not'},
+  {e:'🌟',brand:'Nykaa Cosmetics',name:'Skin Genius Foundation',price:'₹899',badge:'AI Pick',cat:'face',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=nykaa+skin+genius'},
+  {e:'✨',brand:'Dot & Key',name:'Glow Radiance Serum SPF 50',price:'₹695',badge:'New',cat:'skincare',plt:'amazon',url:'https://www.amazon.in/s?k=dot+key+glow+serum'},
+  {e:'👁️',brand:'Plum',name:'Eye Fix Kohl Kajal Waterproof',price:'₹249',badge:'Trending',cat:'eyes',plt:'myntra',url:'https://www.myntra.com/plum+kajal'},
+  {e:'💅',brand:'MyGlamm',name:'LIT Liquid Matte Lipstick',price:'₹349',badge:'Sale',cat:'lips',plt:'purplle',url:'https://www.purplle.com/search?q=myglamm+lit'},
+  {e:'🌸',brand:'Mamaearth',name:'Ubtan Face Wash Turmeric',price:'₹199',badge:'Natural',cat:'skincare',plt:'amazon',url:'https://www.amazon.in/s?k=mamaearth+ubtan'},
+  {e:'🎨',brand:'Lakme',name:'9to5 Weightless Mousse Foundation',price:'₹425',badge:'Classic',cat:'face',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=lakme+9to5'},
+  {e:'💎',brand:'Colorbar',name:'Smoky Eyes Palette',price:'₹799',badge:'AI Pick',cat:'eyes',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=colorbar+smoky+eyes'},
 ];
+const PL={nykaa:'p-nykaa',amazon:'p-amazon',myntra:'p-myntra',purplle:'p-purplle'};
+const PN={nykaa:'Nykaa',amazon:'Amazon',myntra:'Myntra',purplle:'Purplle'};
 
-let activeFilter='all';
-function filterShop(el,f) {
+let activeF='all';
+function filterShop(el,f){
   document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); activeFilter=f; renderShop();
+  el.classList.add('active');activeF=f;renderShop();
 }
-function renderShop() {
-  const g = document.getElementById('shopGrid');
-  const PL = {nykaa:'dot-nykaa',amazon:'dot-amazon',myntra:'dot-myntra',purplle:'dot-purplle'};
-  const PN = {nykaa:'Nykaa',amazon:'Amazon',myntra:'Myntra',purplle:'Purplle'};
-  const list = activeFilter==='all' ? SHOP_PRODUCTS : SHOP_PRODUCTS.filter(p=>p.cat===activeFilter);
-  g.innerHTML = list.map(p=>`
-    <div class="shop-card">
-      <div class="shop-img">
-        <span>${p.emoji}</span>
-        <span class="shop-badge">${p.badge}</span>
-        <span class="shop-heart">🤍</span>
-        <span class="prd-platform ${PL[p.platform]}" style="position:absolute;top:7px;right:7px;">${PN[p.platform]}</span>
+function renderShop(){
+  const g=document.getElementById('shopGrid');
+  const list=activeF==='all'?PRODS:PRODS.filter(p=>p.cat===activeF);
+  g.innerHTML=list.map(p=>`
+    <div class="scard">
+      <div class="simg"><span>${p.e}</span><span class="sbadge">${p.badge}</span><span class="sheart">🤍</span>
+        <span class="${PL[p.plt]} pplatform" style="position:absolute;bottom:7px;right:7px">${PN[p.plt]}</span>
       </div>
-      <div class="shop-body">
-        <div class="shop-brand">${p.brand}</div>
-        <div class="shop-name">${p.name}</div>
-        <div class="shop-price">${p.price}</div>
-        <button class="shop-buy" onclick="window.open('${p.url}','_blank')">Shop Now →</button>
+      <div class="sbody">
+        <div class="sbrand">${p.brand}</div>
+        <div class="sname">${p.name}</div>
+        <div class="sprice">${p.price}</div>
+        <button class="sbuy" onclick="window.open('${p.url}','_blank')">Shop Now →</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── GLOW SHARE ─────────────────────────────────────────────────────────────
-function showGlowShare() {
-  const sc = document.getElementById('vibeNum').textContent;
-  document.getElementById('profileScore').textContent = sc === '—' ? '88' : sc;
-  switchTab('profileScreen', document.getElementById('tab-profile'));
-  showToast('📷 Screenshot & share to your IG Stories!');
+// ── SHARE / IG ────────────────────────────────────────────────────────────
+function goShare(){
+  const sc=document.getElementById('vibeNum').textContent;
+  document.getElementById('profScore').textContent=sc==='—'?'88':sc;
+  switchTab('profileScreen',document.getElementById('nt-profile'));
+  showToast('📷 Screenshot &amp; share to your IG Stories!');
 }
 
-window.resetOnboard = function() {
-  localStorage.removeItem('vm_profile_v3'); location.reload();
-};
+function resetApp(){
+  localStorage.removeItem('vm_profile_v3');location.reload();
+}
 
-function showToast(msg) {
+function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+  t.innerHTML=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
