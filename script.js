@@ -1,63 +1,85 @@
 /**
- * Vibe Mirror AI — script.js v4.0
- * AR lines matching reference design: gold skeleton + cyan eye lines + rose lips
- * Dynamic aura, gamification, Web Speech, localStorage
+ * Vibe Mirror AI — script.js v5.0 FINAL
+ * ─────────────────────────────────────
+ * ✅ Cormorant Garamond luxury aesthetic
+ * ✅ MediaPipe face mesh (unchanged core)
+ * ✅ Digital Skeleton: gold brows, cyan eyes, rose lips, cheekbone arcs
+ * ✅ Dynamic aura glow follows head movement
+ * ✅ Studio flash on scan (0.5s white screen)
+ * ✅ Web Speech API — 4 voice modes (Sweet/Pro/Deep/Calm)
+ * ✅ Greeting: "Hello [Name], you look absolutely stunning today."
+ * ✅ Symmetry always 91–98% (psychological boost)
+ * ✅ Gamification: streak, glow coins (+20/scan)
+ * ✅ Hyper-local Bhopal context
+ * ✅ localStorage persistence
+ * ✅ Brand: Vibe Mirror AI everywhere
  */
 
-// ── DOM ───────────────────────────────────────────────────────────────────
-const videoEl        = document.getElementById('videoEl');
-const arCanvas       = document.getElementById('arCanvas');
-const auraCanvas     = document.getElementById('auraCanvas');
-const ctx            = arCanvas.getContext('2d');
-const auraCtx        = auraCanvas.getContext('2d');
-const hypeBtn        = document.getElementById('hypeBtn');
-const occasionInput  = document.getElementById('occasionInput');
-const camPlaceholder = document.getElementById('camPlaceholder');
-const arGuidePill    = document.getElementById('arGuidePill');
-const vibeNum        = document.getElementById('vibeNum');
-const vibeBar        = document.getElementById('vibeBar');
-const complimentEl   = document.getElementById('complimentEl');
-const complimentTitle= document.getElementById('complimentTitle');
-const productsScroll = document.getElementById('productsScroll');
-const flashEl        = document.getElementById('flashEl');
-const streakVal      = document.getElementById('streakVal');
-const coinsVal       = document.getElementById('coinsVal');
-const symmetryChip   = document.getElementById('symmetryChip');
+// ── DOM REFS ──────────────────────────────────────────────────────────────
+const videoEl    = document.getElementById('videoEl');
+const arCanvas   = document.getElementById('arCanvas');
+const auraCanvas = document.getElementById('auraCanvas');
+const ctx        = arCanvas.getContext('2d');
+const auraCtx    = auraCanvas.getContext('2d');
+const scanBtn    = document.getElementById('scanBtn');
+const occInput   = document.getElementById('occasionInput');
+const camPH      = document.getElementById('camPlaceholder');
+const arPill     = document.getElementById('arGuidePill');
+const vibeNum    = document.getElementById('vibeNum');
+const vibeBar    = document.getElementById('vibeBar');
+const compTitle  = document.getElementById('compTitle');
+const compSub    = document.getElementById('compSub');
+const prodsRow   = document.getElementById('prodsRow');
+const flashEl    = document.getElementById('flash');
+const streakEl   = document.getElementById('streakVal');
+const coinsEl    = document.getElementById('coinsVal');
+const symChip    = document.getElementById('symChip');
 
-// ── PROFILE (localStorage) ─────────────────────────────────────────────────
-const KEY = 'vm_profile_v3';
+// ── USER PROFILE ──────────────────────────────────────────────────────────
+const STORE = 'vm_profile_v3';
 
-function loadProfile() {
-  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+function loadUP() {
+  try { const r = localStorage.getItem(STORE); return r ? JSON.parse(r) : null; } catch { return null; }
 }
-function saveProfile(p) {
-  try { localStorage.setItem(KEY, JSON.stringify(p)); } catch {}
+function saveUP() {
+  try { localStorage.setItem(STORE, JSON.stringify(UP)); } catch {}
 }
 
-let UP = loadProfile() || {
-  name:'', gender:'female', voice:'sweet', goal:'Radiant Glow',
-  scanCount:0, glowCoins:0, streak:1, lastDate:null, done:false
+// expose globally so inline HTML handlers can write to it
+window.UP = loadUP() || {
+  name: '', gender: 'female', voice: 'sweet', goal: 'Radiant Glow',
+  scanCount: 0, glowCoins: 0, streak: 1, lastDate: null, done: false
 };
+const UP = window.UP;
 
-// ── ONBOARDING ─────────────────────────────────────────────────────────────
-window.finishOnboard = function() {
-  UP.name   = (document.getElementById('nameInput').value.trim()) || UP.name;
-  UP.done   = true;
-  saveProfile(UP);
+// ── ONBOARDING ────────────────────────────────────────────────────────────
+window.finishOB = function () {
+  const n = document.getElementById('nameInput').value.trim();
+  if (n) UP.name = n;
+  UP.done = true;
+  saveUP();
   launchApp();
 };
 
-window.skipOnboard = function() {
-  UP.done = true; saveProfile(UP); launchApp();
+window.skipOB = function () {
+  UP.done = true;
+  saveUP();
+  launchApp();
 };
 
 function launchApp() {
   document.getElementById('onboardScreen').classList.remove('active');
   document.getElementById('mirrorScreen').classList.add('active');
   document.getElementById('bottomNav').style.display = 'flex';
-  initCamera();
   syncGamebar();
   updateProfileUI();
+  initCamera();
+
+  // Personalised greeting after short delay
+  setTimeout(() => {
+    const n = UP.name ? UP.name : 'beautiful';
+    speakText(`Hello ${n}, you look absolutely stunning today. Let's analyse your glow.`);
+  }, 1200);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -65,42 +87,51 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('onboardScreen').classList.remove('active');
     document.getElementById('mirrorScreen').classList.add('active');
     document.getElementById('bottomNav').style.display = 'flex';
-    initCamera();
     syncGamebar();
     updateProfileUI();
+    initCamera();
+
+    setTimeout(() => {
+      const n = UP.name ? UP.name : 'beautiful';
+      speakText(`Welcome back, ${n}. Your mirror is ready.`);
+    }, 1400);
   } else {
     document.getElementById('bottomNav').style.display = 'none';
   }
 });
 
-// ── GAMEBAR ────────────────────────────────────────────────────────────────
+// ── GAMIFICATION ──────────────────────────────────────────────────────────
 function syncGamebar() {
-  streakVal.textContent = UP.streak || 1;
-  coinsVal.textContent  = UP.glowCoins || 0;
+  streakEl.textContent = UP.streak || 1;
+  coinsEl.textContent  = UP.glowCoins || 0;
 }
 
 function updateProfileUI() {
-  const sc = document.getElementById('profileScore');
-  if (sc) sc.textContent = lastVibeScore || 88;
+  const sc = document.getElementById('profScore');
+  if (sc && lastScore > 0) sc.textContent = lastScore;
+  const av = document.getElementById('profAv');
+  if (av && UP.name) av.textContent = UP.name[0].toUpperCase();
 }
 
 function awardCoins(n) {
-  UP.glowCoins = (UP.glowCoins||0) + n;
-  syncGamebar(); saveProfile(UP);
-  showToast(`⭐ +${n} Glow Coins!`);
+  UP.glowCoins = (UP.glowCoins || 0) + n;
+  syncGamebar();
+  saveUP();
+  showToast(`⭐ +${n} Glow Coins earned!`);
 }
 
 function bumpStreak() {
   const today = new Date().toDateString();
   if (UP.lastDate !== today) {
-    const yest = new Date(Date.now()-86400000).toDateString();
-    UP.streak = (UP.lastDate === yest) ? (UP.streak||1)+1 : 1;
+    const yest = new Date(Date.now() - 86400000).toDateString();
+    UP.streak = UP.lastDate === yest ? (UP.streak || 1) + 1 : 1;
     UP.lastDate = today;
-    syncGamebar(); saveProfile(UP);
+    syncGamebar();
+    saveUP();
   }
 }
 
-// ── MEDIAPIPE ──────────────────────────────────────────────────────────────
+// ── MEDIAPIPE ─────────────────────────────────────────────────────────────
 const faceMesh = new FaceMesh({
   locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
 });
@@ -112,300 +143,298 @@ faceMesh.setOptions({
 });
 faceMesh.onResults(onResults);
 
-// ── CAMERA ─────────────────────────────────────────────────────────────────
+// ── CAMERA ────────────────────────────────────────────────────────────────
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode:'user', width:{ideal:1280}, height:{ideal:720} },
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false
     });
     videoEl.srcObject = stream;
     videoEl.onloadedmetadata = () => {
-      camPlaceholder.classList.add('hidden');
-      arGuidePill.classList.add('visible');
-      resizeCanvases();
-      hypeBtn.disabled = false;
-      runLoop();
+      camPH.classList.add('hidden');
+      arPill.classList.add('visible');
+      resizeC();
+      scanBtn.disabled = false;
+      loop();
     };
   } catch {
-    camPlaceholder.querySelector('p').textContent = 'Camera access denied. Please allow and refresh.';
+    camPH.querySelector('p').textContent = 'Camera access denied. Please allow and refresh.';
   }
 }
 
-function resizeCanvases() {
+function resizeC() {
   const W = videoEl.videoWidth  || 640;
   const H = videoEl.videoHeight || 480;
-  arCanvas.width = auraCanvas.width = W;
-  arCanvas.height= auraCanvas.height= H;
+  arCanvas.width = auraCanvas.width  = W;
+  arCanvas.height= auraCanvas.height = H;
 }
 
-async function runLoop() {
+async function loop() {
   if (videoEl.readyState >= 2) await faceMesh.send({ image: videoEl });
-  requestAnimationFrame(runLoop);
+  requestAnimationFrame(loop);
 }
 
-// ── STATE ──────────────────────────────────────────────────────────────────
-let latestLM      = null;
-let smoothScore   = 0;
-let smoothSym     = 95;
-let auraAngle     = 0;
-let auraX         = 0, auraY = 0;
-let speechOn      = true;
-let lastVibeScore = 88;
+// ── RUNTIME STATE ─────────────────────────────────────────────────────────
+let latestLM   = null;
+let smoothScore= 0;
+let smoothSym  = 94;
+let auraAngle  = 0;
+let auraX      = 0, auraY = 0;
+let soundOn    = true;
+let lastScore  = 0;
 
-// ── RESULTS ────────────────────────────────────────────────────────────────
+// ── MEDIAPIPE RESULTS ─────────────────────────────────────────────────────
 function onResults(res) {
   ctx.clearRect(0, 0, arCanvas.width, arCanvas.height);
   auraCtx.clearRect(0, 0, auraCanvas.width, auraCanvas.height);
 
   if (res.multiFaceLandmarks?.length) {
     latestLM = res.multiFaceLandmarks[0];
-    hypeBtn.disabled = false;
+    scanBtn.disabled = false;
     drawAura(latestLM);
     drawSkeleton(latestLM);
     liveScore(latestLM);
   } else {
     latestLM = null;
-    smoothScore = Math.max(0, smoothScore - 0.4);
-    if (smoothScore > 5) {
-      vibeNum.textContent = Math.round(smoothScore);
-      vibeBar.style.width = smoothScore + '%';
-    }
+    smoothScore = Math.max(0, smoothScore - 0.5);
+    if (smoothScore < 5) { vibeNum.textContent = '—'; vibeBar.style.width = '0%'; }
+    else { vibeNum.textContent = Math.round(smoothScore); vibeBar.style.width = smoothScore + '%'; }
   }
 }
 
-// ── DYNAMIC GOLDEN AURA ────────────────────────────────────────────────────
+// ── DYNAMIC GOLDEN AURA ───────────────────────────────────────────────────
 function drawAura(lm) {
   const W = auraCanvas.width, H = auraCanvas.height;
   const nose = lm[1];
   const tx = nose.x * W, ty = nose.y * H;
+
+  // Smooth follow
   auraX += (tx - auraX) * 0.07;
   auraY += (ty - auraY) * 0.07;
-  auraAngle += 0.01;
+  auraAngle += 0.011;
 
   const faceW = Math.abs(lm[454].x - lm[234].x) * W;
   const r = faceW * 0.82;
+  const cy = auraY - r * 0.28;
 
-  // Soft radial halo behind face
-  const g = auraCtx.createRadialGradient(auraX, auraY - r*0.28, 0, auraX, auraY - r*0.28, r*1.5);
-  g.addColorStop(0,   'rgba(229,177,161,0.16)');
-  g.addColorStop(0.5, 'rgba(229,177,161,0.06)');
-  g.addColorStop(1,   'rgba(229,177,161,0)');
-  auraCtx.fillStyle = g;
+  // Soft golden halo
+  const grd = auraCtx.createRadialGradient(auraX, cy, 0, auraX, cy, r * 1.52);
+  grd.addColorStop(0,   'rgba(229,177,161,0.18)');
+  grd.addColorStop(0.45,'rgba(229,177,161,0.07)');
+  grd.addColorStop(1,   'rgba(229,177,161,0)');
+  auraCtx.fillStyle = grd;
   auraCtx.beginPath();
-  auraCtx.ellipse(auraX, auraY - r*0.28, r*1.5, r*1.85, 0, 0, Math.PI*2);
+  auraCtx.ellipse(auraX, cy, r * 1.52, r * 1.88, 0, 0, Math.PI * 2);
   auraCtx.fill();
 
   // 3 rotating gold sparks
   for (let i = 0; i < 3; i++) {
     const a = auraAngle + (i * Math.PI * 2) / 3;
-    const sx = auraX + Math.cos(a) * r * 0.52;
-    const sy = (auraY - r*0.28) + Math.sin(a) * r * 0.38;
-    const sg = auraCtx.createRadialGradient(sx, sy, 0, sx, sy, 20);
-    sg.addColorStop(0, 'rgba(229,177,161,0.5)');
+    const sx = auraX + Math.cos(a) * r * 0.54;
+    const sy = cy       + Math.sin(a) * r * 0.40;
+    const sg = auraCtx.createRadialGradient(sx, sy, 0, sx, sy, 22);
+    sg.addColorStop(0, 'rgba(229,177,161,0.52)');
     sg.addColorStop(1, 'rgba(229,177,161,0)');
     auraCtx.fillStyle = sg;
     auraCtx.beginPath();
-    auraCtx.arc(sx, sy, 20, 0, Math.PI*2);
+    auraCtx.arc(sx, sy, 22, 0, Math.PI * 2);
     auraCtx.fill();
   }
 }
 
-// ── DIGITAL SKELETON ────────────────────────────────────────────────────────
-// Index groups matching reference (image 8 screenshot)
-const IDX_OVAL  = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
-const IDX_L_EYE = [33,160,158,133,153,144];
-const IDX_R_EYE = [362,385,387,263,373,380];
-const IDX_L_BROW= [70,63,105,66,107,55,65,52,53,46];
-const IDX_R_BROW= [300,293,334,296,336,285,295,282,283,276];
-const IDX_NOSE  = [168,6,197,195,5,4,1,19,94,2];
-const IDX_LIPS_O= [61,84,17,314,291,409,270,269,267,0,37,39,40,185];
-const IDX_LIPS_I= [78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191];
+// ── DIGITAL SKELETON ──────────────────────────────────────────────────────
+// Landmark index groups
+const I_OVAL  = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
+const I_LEYE  = [33,160,158,133,153,144];
+const I_REYE  = [362,385,387,263,373,380];
+const I_LBROW = [70,63,105,66,107,55,65,52,53,46];
+const I_RBROW = [300,293,334,296,336,285,295,282,283,276];
+const I_NOSE  = [168,6,197,195,5,4,1,19,94,2];
+const I_LIPS  = [61,84,17,314,291,409,270,269,267,0,37,39,40,185];
+const I_LIPSI = [78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191];
 
-function px(lm, i, W, H) { return [lm[i].x * W, lm[i].y * H]; }
+function P(lm, i, W, H) { return [lm[i].x * W, lm[i].y * H]; }
 
-function polyOpen(lm, idx, W, H, col, lw, dash=[]) {
+function polyO(lm, idx, W, H, col, lw, dash = []) {
   ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash);
   ctx.beginPath();
-  idx.forEach((i,n) => { const [x,y]=px(lm,i,W,H); n===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  idx.forEach((i, n) => { const [x, y] = P(lm, i, W, H); n === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
   ctx.stroke(); ctx.setLineDash([]);
 }
 
-function polyClosed(lm, idx, W, H, col, lw, dash=[]) {
+function polyC(lm, idx, W, H, col, lw, dash = []) {
   ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash);
   ctx.beginPath();
-  idx.forEach((i,n) => { const [x,y]=px(lm,i,W,H); n===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  idx.forEach((i, n) => { const [x, y] = P(lm, i, W, H); n === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
   ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
 }
 
-function glowDot(x, y, r, col) {
+function gDot(x, y, r, col) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, col.replace('1)', '0.8)'));
+  g.addColorStop(0, col.replace('1)', '0.75)'));
   g.addColorStop(1, col.replace('1)', '0)'));
   ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  // bright center dot
   ctx.fillStyle = col;
-  ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+}
+
+function fillPoly(lm, idx, W, H, col) {
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  idx.forEach((i, n) => { const [x, y] = P(lm, i, W, H); n === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+  ctx.closePath(); ctx.fill();
 }
 
 function drawSkeleton(lm) {
   const W = arCanvas.width, H = arCanvas.height;
 
-  // 1. Face oval — gold dashed (like reference image 7,8)
-  polyClosed(lm, IDX_OVAL, W, H, 'rgba(229,177,161,0.45)', 1.4, [4,6]);
+  // 1. Face oval — gold dashed
+  polyC(lm, I_OVAL, W, H, 'rgba(229,177,161,0.48)', 1.4, [4, 6]);
 
-  // 2. Eyebrows — solid bright gold (clearly visible in image 8)
-  polyOpen(lm, IDX_L_BROW, W, H, 'rgba(229,177,161,0.9)', 2.0);
-  polyOpen(lm, IDX_R_BROW, W, H, 'rgba(229,177,161,0.9)', 2.0);
+  // 2. Eyebrows — solid bright gold (key feature)
+  polyO(lm, I_LBROW, W, H, 'rgba(229,177,161,0.95)', 2.2);
+  polyO(lm, I_RBROW, W, H, 'rgba(229,177,161,0.95)', 2.2);
 
-  // 3. Eyes — cyan/teal closed polygon (matches reference — white-cyan in image 8)
-  polyClosed(lm, IDX_L_EYE, W, H, 'rgba(200,230,255,0.85)', 1.8);
-  polyClosed(lm, IDX_R_EYE, W, H, 'rgba(200,230,255,0.85)', 1.8);
+  // 3. Eyes — cyan closed polygon
+  polyC(lm, I_LEYE, W, H, 'rgba(180,225,255,0.88)', 1.8);
+  polyC(lm, I_REYE, W, H, 'rgba(180,225,255,0.88)', 1.8);
 
-  // 4. Eyeliner coach overlay — cyan dotted outside eyes
-  polyOpen(lm, IDX_L_EYE, W, H, 'rgba(99,247,255,0.5)', 1.0, [2,4]);
-  polyOpen(lm, IDX_R_EYE, W, H, 'rgba(99,247,255,0.5)', 1.0, [2,4]);
+  // 4. Eye fill — subtle cyan glow
+  fillPoly(lm, I_LEYE, W, H, 'rgba(99,247,255,0.08)');
+  fillPoly(lm, I_REYE, W, H, 'rgba(99,247,255,0.08)');
 
-  // 5. Eye glow fill
-  const eyeFillL = ctx.createRadialGradient(...px(lm,468,W,H), 0, ...px(lm,468,W,H), 14);
-  eyeFillL.addColorStop(0, 'rgba(99,247,255,0.12)');
-  eyeFillL.addColorStop(1, 'rgba(99,247,255,0)');
-  ctx.fillStyle = eyeFillL;
-  ctx.beginPath();
-  IDX_L_EYE.forEach((i,n)=>{ const[x,y]=px(lm,i,W,H); n===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.closePath(); ctx.fill();
-
-  const eyeFillR = ctx.createRadialGradient(...px(lm,473,W,H), 0, ...px(lm,473,W,H), 14);
-  eyeFillR.addColorStop(0, 'rgba(99,247,255,0.12)');
-  eyeFillR.addColorStop(1, 'rgba(99,247,255,0)');
-  ctx.fillStyle = eyeFillR;
-  ctx.beginPath();
-  IDX_R_EYE.forEach((i,n)=>{ const[x,y]=px(lm,i,W,H); n===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.closePath(); ctx.fill();
+  // 5. Eyeliner coach dotted overlay
+  polyO(lm, I_LEYE, W, H, 'rgba(99,247,255,0.45)', 1.0, [2, 4]);
+  polyO(lm, I_REYE, W, H, 'rgba(99,247,255,0.45)', 1.0, [2, 4]);
 
   // 6. Nose bridge — subtle white
-  polyOpen(lm, IDX_NOSE, W, H, 'rgba(255,255,255,0.22)', 1.0);
+  polyO(lm, I_NOSE, W, H, 'rgba(255,255,255,0.2)', 0.9);
 
-  // 7. Cheekbone contour curves (key feature from reference images 7 & 8)
-  const [clx, cly] = px(lm, 234, W, H);
-  const [crx, cry] = px(lm, 454, W, H);
-  const [chinx, chiny] = px(lm, 152, W, H);
-  const [nosex, nosey] = px(lm, 4, W, H);
+  // 7. Cheekbone contour curves (from reference image 1 & 3)
+  const [clx, cly] = P(lm, 234, W, H);
+  const [crx, cry] = P(lm, 454, W, H);
+  const [nx,  ny]  = P(lm, 4,   W, H);
+  const [chinx, chiny] = P(lm, 152, W, H);
 
-  ctx.strokeStyle = 'rgba(229,177,161,0.65)';
-  ctx.lineWidth = 1.8; ctx.setLineDash([]);
-  // Left cheekbone arc
-  ctx.beginPath();
-  ctx.moveTo(clx + (nosex-clx)*0.3, cly + (nosey-cly)*0.6);
-  ctx.quadraticCurveTo(clx + (nosex-clx)*0.15, cly + (chiny-cly)*0.5, chinx + (clx-chinx)*0.35, chiny - (chiny-cly)*0.12);
-  ctx.stroke();
-  // Right cheekbone arc
-  ctx.beginPath();
-  ctx.moveTo(crx + (nosex-crx)*0.3, cry + (nosey-cry)*0.6);
-  ctx.quadraticCurveTo(crx + (nosex-crx)*0.15, cry + (chiny-cry)*0.5, chinx + (crx-chinx)*0.35, chiny - (chiny-cry)*0.12);
-  ctx.stroke();
-
-  // 8. Lips outer — rose/coral (image 8 shows red-pink lips outline)
-  polyClosed(lm, IDX_LIPS_O, W, H, 'rgba(210,100,90,0.85)', 1.8);
-
-  // 9. Lips inner dotted — coach overlay
-  polyClosed(lm, IDX_LIPS_I, W, H, 'rgba(255,140,120,0.5)', 1.1, [2,3]);
-
-  // 10. Lip fill subtle
-  const lipG = ctx.createRadialGradient(...px(lm,14,W,H), 0, ...px(lm,14,W,H), 18);
-  lipG.addColorStop(0, 'rgba(210,80,70,0.1)'); lipG.addColorStop(1, 'rgba(210,80,70,0)');
-  ctx.fillStyle = lipG;
-  ctx.beginPath();
-  IDX_LIPS_O.forEach((i,n)=>{ const[x,y]=px(lm,i,W,H); n===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.closePath(); ctx.fill();
-
-  // 11. Golden ratio horizontal lines (across full face)
-  const fL = lm[234].x * W - 15;
-  const fR = lm[454].x * W + 15;
-  const ratioPoints = [lm[10].y*H, lm[66].y*H, lm[4].y*H, lm[17].y*H, lm[152].y*H];
-  ctx.strokeStyle = 'rgba(229,177,161,0.22)';
-  ctx.lineWidth = 0.8; ctx.setLineDash([5, 8]);
-  ratioPoints.forEach(y => {
-    ctx.beginPath(); ctx.moveTo(fL, y); ctx.lineTo(fR, y); ctx.stroke();
-  });
+  ctx.strokeStyle = 'rgba(229,177,161,0.7)';
+  ctx.lineWidth   = 1.9;
   ctx.setLineDash([]);
 
-  // 12. Glow dots — cheekbones, nose tip, lip corners
-  const glowPts = [
-    [234, 'rgba(229,177,161,1)', 16],
-    [454, 'rgba(229,177,161,1)', 16],
-    [1,   'rgba(229,177,161,1)', 10],
-    [61,  'rgba(210,100,90,1)',  10],
-    [291, 'rgba(210,100,90,1)',  10],
-  ];
-  glowPts.forEach(([i, col, r]) => {
-    const [x,y] = px(lm, i, W, H);
-    glowDot(x, y, r, col);
-  });
+  // Left cheekbone arc
+  ctx.beginPath();
+  ctx.moveTo(clx + (nx - clx) * 0.28, cly + (ny - cly) * 0.62);
+  ctx.quadraticCurveTo(
+    clx + (nx - clx) * 0.12, cly + (chiny - cly) * 0.52,
+    chinx + (clx - chinx) * 0.36, chiny - (chiny - cly) * 0.1
+  );
+  ctx.stroke();
 
-  // 13. Micro dots on key skeleton intersections
-  const microDots = [10,152,107,336,33,263,1,61,291];
-  microDots.forEach(i => {
-    const [x,y] = px(lm,i,W,H);
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.beginPath(); ctx.arc(x,y,1.6,0,Math.PI*2); ctx.fill();
+  // Right cheekbone arc
+  ctx.beginPath();
+  ctx.moveTo(crx + (nx - crx) * 0.28, cry + (ny - cry) * 0.62);
+  ctx.quadraticCurveTo(
+    crx + (nx - crx) * 0.12, cry + (chiny - cry) * 0.52,
+    chinx + (crx - chinx) * 0.36, chiny - (chiny - cry) * 0.1
+  );
+  ctx.stroke();
+
+  // 8. Lips outer — rose/coral
+  polyC(lm, I_LIPS,  W, H, 'rgba(210,100,90,0.88)', 1.9);
+
+  // 9. Lips inner — dotted coach overlay
+  polyC(lm, I_LIPSI, W, H, 'rgba(255,140,120,0.52)', 1.1, [2, 3]);
+
+  // 10. Lip subtle fill
+  fillPoly(lm, I_LIPS, W, H, 'rgba(210,80,70,0.09)');
+
+  // 11. Golden ratio horizontal guide lines
+  const fL = lm[234].x * W - 18;
+  const fR = lm[454].x * W + 18;
+  const ratioY = [lm[10].y * H, lm[66].y * H, lm[4].y * H, lm[17].y * H, lm[152].y * H];
+  ctx.strokeStyle = 'rgba(229,177,161,0.2)';
+  ctx.lineWidth = 0.8; ctx.setLineDash([5, 8]);
+  ratioY.forEach(y => { ctx.beginPath(); ctx.moveTo(fL, y); ctx.lineTo(fR, y); ctx.stroke(); });
+  ctx.setLineDash([]);
+
+  // 12. Glow dots — cheekbones, nose, lip corners
+  gDot(...P(lm, 234, W, H), 17, 'rgba(229,177,161,1)');
+  gDot(...P(lm, 454, W, H), 17, 'rgba(229,177,161,1)');
+  gDot(...P(lm, 1,   W, H), 11, 'rgba(229,177,161,1)');
+  gDot(...P(lm, 61,  W, H), 10, 'rgba(210,100,90,1)');
+  gDot(...P(lm, 291, W, H), 10, 'rgba(210,100,90,1)');
+
+  // 13. Micro white dots on skeleton intersections
+  [10, 152, 107, 336, 33, 263, 1, 61, 291].forEach(i => {
+    const [x, y] = P(lm, i, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.62)';
+    ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
   });
 }
 
-// ── LIVE SCORE ─────────────────────────────────────────────────────────────
+// ── LIVE SCORE ────────────────────────────────────────────────────────────
 function liveScore(lm) {
-  const W = arCanvas.width, H = arCanvas.height;
-  const cx = (lm[234].x + lm[454].x) / 2;
+  const cx  = (lm[234].x + lm[454].x) / 2;
   const sym = Math.max(0, 1 - Math.abs(lm[1].x - cx) * 5);
-  const target = 70 + sym * 26;
+  const target = 72 + sym * 24;
   smoothScore += (target - smoothScore) * 0.04;
 
   const disp = Math.round(smoothScore);
   vibeNum.textContent = disp;
   vibeBar.style.width = disp + '%';
-  lastVibeScore = disp;
+  lastScore = disp;
 
-  const symPct = Math.min(99, Math.round(sym * 11 + 88));
-  smoothSym += (symPct - smoothSym) * 0.05;
-  symmetryChip.textContent = '◈ ' + Math.round(smoothSym) + '%';
+  // Symmetry: psychological boost 91–98%
+  const rawSym = 91 + sym * 7;
+  smoothSym += (rawSym - smoothSym) * 0.05;
+  symChip.textContent = '◈ ' + Math.min(98, Math.max(91, Math.round(smoothSym))) + '%';
 }
 
-// ── FLASH ──────────────────────────────────────────────────────────────────
-window.triggerFlash = function() {
-  flashEl.style.transition = 'opacity 0.07s';
+// ── STUDIO FLASH ─────────────────────────────────────────────────────────
+window.triggerFlash = function () {
+  flashEl.style.transition = 'opacity 0.06s ease';
   flashEl.style.opacity = '1';
-  setTimeout(() => { flashEl.style.transition='opacity 0.5s'; flashEl.style.opacity='0'; }, 140);
+  setTimeout(() => {
+    flashEl.style.transition = 'opacity 0.5s ease';
+    flashEl.style.opacity = '0';
+  }, 180);
 };
 
-// ── SCAN ───────────────────────────────────────────────────────────────────
-window.triggerScan = async function() {
+// ── SCAN ─────────────────────────────────────────────────────────────────
+window.doScan = async function () {
   if (!latestLM) { showToast('🔍 Point your face at the camera first!'); return; }
 
+  // STUDIO FLASH before scan
   triggerFlash();
-  const occasion = occasionInput.value.trim() || `${UP.goal || 'daily glow'} in Bhopal`;
-  const faceData = extractData(latestLM);
-  UP.scanCount = (UP.scanCount||0) + 1;
-  bumpStreak(); saveProfile(UP);
+
+  const occ = occInput.value.trim() || `${UP.goal || 'daily glow'} in Bhopal`;
+  const fd  = extractData(latestLM);
+
+  UP.scanCount = (UP.scanCount || 0) + 1;
+  bumpStreak();
+  saveUP();
 
   setLoading(true);
   try {
     const res = await fetch('/api/stylist', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ faceData, occasion })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ faceData: fd, occasion: occ })
     });
-    if (!res.ok) { const e=await res.json().catch(()=>{}); throw new Error(e?.error||`Error ${res.status}`); }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error || `Error ${res.status}`); }
     const data = await res.json();
-    renderResult(data, faceData);
+    renderResult(data, fd);
     awardCoins(20);
-  } catch(e) {
-    complimentEl.textContent = '⚠ ' + (e.message || 'Check your GROQ_API_KEY in Vercel env.');
+  } catch (e) {
+    compSub.textContent = '⚠ ' + (e.message || 'Check GROQ_API_KEY in Vercel env.');
   } finally {
     setLoading(false);
   }
 };
 
-// ── EXTRACT ANONYMOUS DATA ─────────────────────────────────────────────────
+// ── EXTRACT ANONYMOUS DATA ────────────────────────────────────────────────
 function extractData(lm) {
   const W = arCanvas.width, H = arCanvas.height;
   const fW = Math.abs(lm[454].x - lm[234].x) * W;
@@ -413,134 +442,173 @@ function extractData(lm) {
   const eD = Math.abs(lm[263].x - lm[33].x)  * W;
   const lH = Math.abs(lm[17].y  - lm[0].y)   * H;
   const jW = Math.abs(lm[397].x - lm[172].x)  * W;
-  const r  = fW / (fH||1);
-  const faceShape = r < 0.78 ? 'oblong' : r > 0.95 ? 'round' : (jW/fW)<0.72?'heart':'oval';
-  const cx  = (lm[234].x + lm[454].x)/2;
-  const sym = Math.max(0, 1-Math.abs(lm[1].x-cx)*5);
+  const r  = fW / (fH || 1);
+  const shape = r < 0.78 ? 'oblong' : r > 0.95 ? 'round' : (jW / fW) < 0.72 ? 'heart' : 'oval';
+  const cx  = (lm[234].x + lm[454].x) / 2;
+  const sym = Math.max(0, 1 - Math.abs(lm[1].x - cx) * 5);
   return {
-    faceShape,
-    vibeScore: Math.round(Math.min(96, 70+sym*26)),
-    symmetryScore: Math.min(99, Math.round(sym*11+88)),
+    faceShape: shape,
+    vibeScore: Math.round(Math.min(96, 72 + sym * 24)),
+    symmetryScore: Math.min(98, Math.max(91, Math.round(91 + sym * 7))),
     userName: UP.name || 'Beautiful',
     goal: UP.goal || 'Radiant Glow',
     ratios: {
-      faceAspect:  +(fW/fH).toFixed(3),
-      eyeSpacing:  +(eD/fW).toFixed(3),
-      lipFullness: +(lH/fH).toFixed(3),
-      jawToFace:   +(jW/fW).toFixed(3),
+      faceAspect:  +(fW / fH).toFixed(3),
+      eyeSpacing:  +(eD / fW).toFixed(3),
+      lipFullness: +(lH / fH).toFixed(3),
+      jawToFace:   +(jW / fW).toFixed(3),
     }
   };
 }
 
-// ── RENDER RESULT ──────────────────────────────────────────────────────────
+// ── RENDER RESULTS ────────────────────────────────────────────────────────
 const PLT = {
-  'Nykaa':  {cls:'dot-nykaa',  lbl:'Nykaa',   base:'https://www.nykaa.com/search/result/?q='},
-  'Amazon': {cls:'dot-amazon', lbl:'Amazon',  base:'https://www.amazon.in/s?k='},
-  'Myntra': {cls:'dot-myntra', lbl:'Myntra',  base:'https://www.myntra.com/'},
-  'Purplle':{cls:'dot-purplle',lbl:'Purplle', base:'https://www.purplle.com/search?q='},
+  'Nykaa':   { cls: 'p-nykaa',   lbl: 'Nykaa',   base: 'https://www.nykaa.com/search/result/?q=' },
+  'Amazon':  { cls: 'p-amazon',  lbl: 'Amazon',  base: 'https://www.amazon.in/s?k=' },
+  'Myntra':  { cls: 'p-myntra',  lbl: 'Myntra',  base: 'https://www.myntra.com/' },
+  'Purplle': { cls: 'p-purplle', lbl: 'Purplle', base: 'https://www.purplle.com/search?q=' },
 };
 
 function renderResult(data, fd) {
   const { compliment, products, vibeScore } = data;
   const vs = vibeScore || fd.vibeScore;
+
   vibeNum.textContent = vs;
   vibeBar.style.width = vs + '%';
-  smoothScore = vs; lastVibeScore = vs;
+  smoothScore = vs; lastScore = vs;
 
-  const greet = UP.name ? `${UP.name}, ` : '';
-  const fullCompliment = greet + compliment;
+  const prefix = UP.name ? `${UP.name}, ` : '';
+  const full   = prefix + compliment;
 
-  complimentTitle.textContent = `"${compliment.slice(0,50)}${compliment.length>50?'…':''}"`;
-  complimentEl.textContent = `AI Analysis Reflection: ${fd.faceShape} face · Symmetry ${fd.symmetryScore}%`;
+  // Update compliment card
+  compTitle.textContent = `"${compliment.slice(0, 55)}${compliment.length > 55 ? '…' : ''}"`;
+  compSub.textContent   = `Vibe AI Analysis · ${fd.faceShape} face · Symmetry ${fd.symmetryScore}%`;
 
-  document.getElementById('profileScore').textContent = vs;
+  // Update profile score
+  const ps = document.getElementById('profScore');
+  if (ps) ps.textContent = vs;
+  updateProfileUI();
 
+  // Products
   if (products?.length) {
-    productsScroll.style.display = 'flex';
-    productsScroll.innerHTML = products.slice(0,3).map(p => {
-      const pm = PLT[p.platform] || PLT['Nykaa'];
+    prodsRow.style.display = 'flex';
+    prodsRow.innerHTML = products.slice(0, 3).map(p => {
+      const pm  = PLT[p.platform] || PLT['Nykaa'];
       const url = p.affiliateUrl || (pm.base + encodeURIComponent(p.name));
+      const parts = p.name.split(' ');
+      const br  = parts.slice(0, 2).join(' ');
+      const nm  = parts.slice(2).join(' ') || p.name;
       return `
-        <div class="product-card" onclick="window.open('${esc(url)}','_blank')">
-          <div class="prd-img">
-            <span>${p.emoji||'✨'}</span>
-            <span class="prd-platform ${pm.cls}">${pm.lbl}</span>
+        <div class="pcard" onclick="window.open('${esc(url)}','_blank')">
+          <div class="pimg">
+            <span>${p.emoji || '✨'}</span>
+            <span class="pplatform ${pm.cls}">${pm.lbl}</span>
           </div>
-          <div class="prd-body">
-            <div class="prd-brand">${esc(p.name.split(' ').slice(0,2).join(' '))}</div>
-            <div class="prd-name">${esc(p.name.split(' ').slice(2).join(' ')||p.name)}</div>
-            <div class="prd-desc">${esc(p.description||'')}</div>
-            <div class="prd-price">₹${p.price||'—'}</div>
-            <button class="prd-btn">Shop Now →</button>
+          <div class="pbody">
+            <div class="pbrand">${esc(br)}</div>
+            <div class="pname">${esc(nm)}</div>
+            <div class="pdesc">${esc(p.description || '')}</div>
+            <div class="pprice">₹${p.price || '—'}</div>
+            <button class="pbtn">Shop Now →</button>
           </div>
         </div>`;
     }).join('');
   }
 
-  if (speechOn) speakText(fullCompliment);
+  // Voice hype
+  if (soundOn) {
+    const n = UP.name ? UP.name : '';
+    speakText((n ? n + ', ' : '') + compliment);
+  }
+
   showToast('✨ Vibe Mirror AI analysis complete!');
 }
 
 function setLoading(on) {
-  hypeBtn.disabled = on;
-  hypeBtn.innerHTML = on
-    ? `<span class="btn-spinner"></span> Analyzing…`
-    : `<span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:18px;">center_focus_weak</span> Scan Skin`;
+  scanBtn.disabled = on;
+  scanBtn.innerHTML = on
+    ? `<span class="btn-spin"></span> Analyzing…`
+    : `<span class="material-symbols-outlined ms" style="font-family:'Material Symbols Outlined';font-size:18px">center_focus_weak</span> Scan Skin`;
 }
 
-// ── VOICE ──────────────────────────────────────────────────────────────────
+// ── VOICE ENGINE ──────────────────────────────────────────────────────────
 let voices = [];
+
+function loadVoices() {
+  voices = window.speechSynthesis.getVoices();
+  if (!voices.length) setTimeout(loadVoices, 250);
+}
+
 if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => { voices = window.speechSynthesis.getVoices(); };
-  setTimeout(()=>{ voices = window.speechSynthesis.getVoices(); }, 500);
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
 }
 
 function getBestVoice() {
   if (!voices.length) voices = window.speechSynthesis.getVoices();
   const v = UP.voice || 'sweet';
-  const female = v === 'sweet' || v === 'calm';
-  const enVoices = voices.filter(v => v.lang.startsWith('en'));
-  const indian   = enVoices.filter(v => v.name.includes('India')||v.name.includes('IN'));
+  const isFemale = (v === 'sweet' || v === 'calm');
+  const en = voices.filter(v => v.lang.startsWith('en'));
+  const indian = en.filter(v => v.name.includes('India') || v.name.includes('IN'));
 
-  if (female) {
-    return indian.find(v=>v.name.includes('Aditi')||v.name.includes('Raveena'))
-      || enVoices.find(v=>v.name.includes('Samantha')||v.name.includes('Karen')||v.name.includes('Moira'))
-      || enVoices[0] || null;
+  if (isFemale) {
+    return (
+      indian.find(v => v.name.includes('Aditi') || v.name.includes('Raveena')) ||
+      en.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Moira') || v.name.includes('Tessa')) ||
+      en[0] || null
+    );
   } else {
-    return indian.find(v=>!v.name.toLowerCase().includes('female'))
-      || enVoices.find(v=>v.name.includes('Daniel')||v.name.includes('Tom')||v.name.includes('Aaron'))
-      || enVoices[1] || null;
+    return (
+      indian.find(v => !v.name.toLowerCase().includes('female')) ||
+      en.find(v => v.name.includes('Daniel') || v.name.includes('Tom') || v.name.includes('Aaron') || v.name.includes('Oliver')) ||
+      en[1] || null
+    );
   }
 }
 
-function speakText(text) {
-  if (!speechOn || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-IN';
-  const voice = getBestVoice(); if (voice) u.voice = voice;
+function getVoiceParams() {
   const v = UP.voice || 'sweet';
-  u.pitch  = v==='sweet' ? 1.15 : v==='calm' ? 1.0 : v==='deep' ? 0.75 : 0.9;
-  u.rate   = v==='sweet' ? 0.91 : v==='calm' ? 0.85 : v==='deep' ? 0.82 : 0.88;
-  u.volume = 1;
-  window.speechSynthesis.speak(u);
+  switch (v) {
+    case 'sweet': return { pitch: 1.14, rate: 0.90 };
+    case 'pro':   return { pitch: 0.92, rate: 0.88 };
+    case 'deep':  return { pitch: 0.72, rate: 0.83 };
+    case 'calm':  return { pitch: 1.02, rate: 0.82 };
+    default:      return { pitch: 1.0,  rate: 0.88 };
+  }
 }
 
-window.toggleSound = function() {
-  speechOn = !speechOn;
-  const btn = document.getElementById('soundBtn');
-  btn.querySelector('.mat-icon').textContent = speechOn ? 'volume_up' : 'volume_off';
-  showToast(speechOn ? '🔊 Voice hype ON' : '🔇 Voice hype OFF');
-  if (!speechOn) window.speechSynthesis.cancel();
+window.speakText = function speakText(text) {
+  if (!soundOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt   = new SpeechSynthesisUtterance(text);
+  utt.lang    = 'en-IN';
+  const voice = getBestVoice();
+  if (voice) utt.voice = voice;
+  const { pitch, rate } = getVoiceParams();
+  utt.pitch  = pitch;
+  utt.rate   = rate;
+  utt.volume = 1;
+  window.speechSynthesis.speak(utt);
 };
 
-// ── UTILS ──────────────────────────────────────────────────────────────────
+window.toggleSound = function () {
+  soundOn = !soundOn;
+  const btn = document.getElementById('soundBtn');
+  if (btn) btn.querySelector('.ms').textContent = soundOn ? 'volume_up' : 'volume_off';
+  showToast(soundOn ? '🔊 Voice hype ON' : '🔇 Voice hype OFF');
+  if (!soundOn) window.speechSynthesis.cancel();
+};
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
 function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-window.showToast = function(msg) {
+window.showToast = function (msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2800);
+  t.innerHTML = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
 };
