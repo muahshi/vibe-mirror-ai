@@ -1,15 +1,15 @@
 /**
- * /api/stylist.js — Vercel Serverless Function
+ * /api/stylist.js — Vercel Serverless Function v3
  *
- * Receives: anonymized face metadata + occasion string
- * Returns:  compliment, product list, styling tip
+ * Receives: anonymized face metadata, occasion, user name, goal
+ * Returns:  personalized compliment, curated products, styling tip
  *
  * PRIVACY GUARANTEE: No face images ever touch this endpoint.
  * Only numerical ratios and categorical labels are received.
  */
 
 export default async function handler(req, res) {
-  // ── CORS (adjust origin in production) ──────────────────────────────────
+  // ── CORS ─────────────────────────────────────────────────────────────────
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,13 +17,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
-  // ── Validate API Key ─────────────────────────────────────────────────────
+  // ── Validate API Key ──────────────────────────────────────────────────────
   const GROQ_API_KEY = process.env.GROQ_API_KEY;
   if (!GROQ_API_KEY) {
-    return res.status(500).json({ error: 'GROQ_API_KEY not configured in Vercel environment variables.' });
+    return res.status(500).json({
+      error: 'GROQ_API_KEY not configured in Vercel environment variables.'
+    });
   }
 
-  // ── Parse & Validate Body ────────────────────────────────────────────────
+  // ── Parse Body ─────────────────────────────────────────────────────────────
   let faceData, occasion;
   try {
     ({ faceData, occasion } = req.body);
@@ -32,47 +34,65 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  // ── Sanitize inputs ──────────────────────────────────────────────────────
-  const safeOccasion = String(occasion || 'casual daytime look').slice(0, 200);
-  const { faceShape, vibeScore, ratios } = faceData;
+  const safeOccasion = String(occasion || 'casual daytime look').slice(0, 250);
+  const { faceShape, vibeScore, symmetryScore, userName, goal, ratios } = faceData;
+  const safeName = String(userName || 'Beautiful').slice(0, 30);
+  const safeGoal = String(goal || 'Glow & Radiance').slice(0, 50);
 
-  // ── Build Groq Prompt ────────────────────────────────────────────────────
-  const systemPrompt = `You are "Aura", the world's fastest and most empowering AI personal stylist.
-Your personality: warm, confident, direct, like a best friend who happens to know everything about beauty.
-Your mission: In every response, make the user feel SEEN, BEAUTIFUL, and EXCITED to try new products.
+  // ── Detect location for hyper-local context ───────────────────────────────
+  const locationCtx = detectLocation(safeOccasion);
+
+  // ── System Prompt ─────────────────────────────────────────────────────────
+  const systemPrompt = `You are "Aura", the world's most premium and empowering AI personal beauty stylist.
+Your personality: warm, sophisticated, direct — like a best friend who happens to be a world-class celebrity makeup artist.
+Your mission: Make every user feel SEEN, RADIANT, and EXCITED to try new products.
+
+ABOUT THE USER:
+- Their name is ${safeName}
+- Their beauty goal: ${safeGoal}
+- Location context: ${locationCtx}
 
 RULES:
-- Compliment must feel GENUINE and SPECIFIC (reference their face shape or vibe score subtly)
-- Products must be real Indian market brands: Sugar, Mamaearth, Lakme, MyGlamm, Nykaa brand, Dot & Key, Plum, etc.
-- Each product MUST have an affiliate platform: Nykaa, Amazon, Myntra, or Purplle
-- Keep product descriptions short (1 sentence, under 20 words)
-- Tip must be hyper-contextual to the occasion (include weather/event specifics if mentioned)
+- ALWAYS address the user by their first name (${safeName}) in the compliment
+- Compliment must feel GENUINE, SPECIFIC, and slightly technical (reference face shape, symmetry, or skin quality)
+- Mention specific symmetry score subtly to make the analysis feel premium and credible
+- Products MUST be real Indian market brands: Sugar, Mamaearth, Lakme, MyGlamm, Nykaa brand, Dot & Key, Plum, Biotique, Minimalist, WOW, Faces Canada
+- Each product MUST have a platform: Nykaa, Amazon, Myntra, or Purplle
+- Tip must be hyper-specific to occasion AND location weather (if Bhopal/Delhi: heat, if Mumbai: humidity)
+- Make the compliment sound like a luxe spa consultation, not a chatbot
 - ALWAYS respond with ONLY valid JSON — no markdown, no extra text
 
-JSON schema (respond with this exact structure):
+JSON schema (respond with this EXACT structure):
 {
-  "compliment": "string (max 40 words, genuine, specific to face features)",
-  "vibeScore": number (between 72 and 97),
+  "compliment": "string (max 45 words, warm, specific, uses their name)",
+  "vibeScore": number (between 78 and 97),
   "products": [
     {
-      "name": "Brand Product Name",
-      "description": "One punchy sentence why it's perfect for them",
+      "name": "Brand Full Product Name",
+      "description": "One punchy sentence why it's perfect for them (max 18 words)",
       "platform": "Nykaa|Amazon|Myntra|Purplle",
-      "emoji": "💋|👁️|✨|💅|🌟 (pick most fitting)"
+      "price": "number without ₹ symbol",
+      "emoji": "💋|👁️|✨|💅|🌟|💧|🌸"
     }
   ],
-  "tip": "string (one actionable styling tip for this specific occasion, max 35 words)"
+  "tip": "string (one actionable, location-specific styling tip, max 40 words)"
 }`;
 
-  const userPrompt = `Analyze this beauty client:
+  const userPrompt = `Analyze this client in a premium beauty consultation:
+
+CLIENT PROFILE:
+- Name: ${safeName}
+- Beauty Goal: ${safeGoal}
 - Face Shape: ${faceShape}
-- Current Vibe Score: ${vibeScore}/100
+- Vibe Score: ${vibeScore}/100
+- Symmetry Score: ${symmetryScore || 94}%
 - Facial Ratios: eye spacing ${ratios.eyeSpacing}, lip fullness ${ratios.lipFullness}, jaw-to-face ${ratios.jawToFace}
 - Occasion: "${safeOccasion}"
+- Location Context: ${locationCtx}
 
-Generate 3 perfectly curated products + 1 stunning compliment. Make them feel like a million dollars.`;
+Generate 3 perfectly curated Indian beauty products + 1 stunning personalized compliment that makes ${safeName} feel like they just walked into a luxury salon. Reference their specific features and name.`;
 
-  // ── Call Groq API ────────────────────────────────────────────────────────
+  // ── Call Groq ──────────────────────────────────────────────────────────────
   try {
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -86,10 +106,9 @@ Generate 3 perfectly curated products + 1 stunning compliment. Make them feel li
           { role: 'system', content: systemPrompt },
           { role: 'user',   content: userPrompt   },
         ],
-        temperature:      0.85,
-        max_tokens:       600,
-        response_format:  { type: 'json_object' },
-        // Groq is already ultra-fast; no special speed param needed
+        temperature:     0.88,
+        max_tokens:      700,
+        response_format: { type: 'json_object' },
       }),
     });
 
@@ -99,8 +118,8 @@ Generate 3 perfectly curated products + 1 stunning compliment. Make them feel li
       return res.status(502).json({ error: 'AI stylist is temporarily unavailable. Try again!' });
     }
 
-    const groqData  = await groqResponse.json();
-    const rawText   = groqData.choices?.[0]?.message?.content || '{}';
+    const groqData = await groqResponse.json();
+    const rawText  = groqData.choices?.[0]?.message?.content || '{}';
 
     let parsed;
     try {
@@ -110,12 +129,10 @@ Generate 3 perfectly curated products + 1 stunning compliment. Make them feel li
       return res.status(502).json({ error: 'AI response could not be parsed. Try again!' });
     }
 
-    // Validate structure
     if (!parsed.compliment || !Array.isArray(parsed.products)) {
       return res.status(502).json({ error: 'Incomplete AI response. Try again!' });
     }
 
-    // Safety: cap product count
     parsed.products = parsed.products.slice(0, 3);
 
     return res.status(200).json(parsed);
@@ -126,3 +143,32 @@ Generate 3 perfectly curated products + 1 stunning compliment. Make them feel li
   }
 }
 
+// ── Hyper-local location context ──────────────────────────────────────────
+function detectLocation(occasion) {
+  const lower = occasion.toLowerCase();
+
+  if (lower.includes('bhopal')) {
+    return 'Bhopal, Madhya Pradesh — hot semi-arid climate, high UV index, dry heat. Recommend sweat-proof, long-wear formulas with SPF.';
+  }
+  if (lower.includes('mumbai') || lower.includes('bombay')) {
+    return 'Mumbai — high humidity, coastal city. Recommend oil-control, humidity-resistant formulas.';
+  }
+  if (lower.includes('delhi')) {
+    return 'Delhi — extreme temperature swings, pollution. Recommend protective SPF + antioxidant serums.';
+  }
+  if (lower.includes('bangalore') || lower.includes('bengaluru')) {
+    return 'Bengaluru — mild weather, moderate humidity. Lightweight formulas work well year-round.';
+  }
+  if (lower.includes('kolkata') || lower.includes('calcutta')) {
+    return 'Kolkata — tropical humid climate. Recommend mattifying primers and waterproof formulas.';
+  }
+  if (lower.includes('hyderabad')) {
+    return 'Hyderabad — hot and semi-arid. Recommend long-wear foundations with SPF 50+ protection.';
+  }
+  if (lower.includes('chennai') || lower.includes('madras')) {
+    return 'Chennai — very hot and humid. Recommend oil-free, breathable formulas with UV protection.';
+  }
+
+  // Default to Bhopal context as specified
+  return 'Bhopal, Madhya Pradesh (default context) — hot dry climate with high UV. Recommend sweat-proof formulas with SPF 50.';
+}
