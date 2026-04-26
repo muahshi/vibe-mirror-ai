@@ -612,3 +612,119 @@ window.showToast = function (msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 };
+
+// ── REAL AI CHAT (Stylist Screen) ─────────────────────────────────────────
+let chatHistory = [];
+let chatTyping  = false;
+
+window.startChat = function(who) {
+  const name = who === 'sarah' ? 'Sarah Jenkins' : 'Vibe Architect AI';
+  showToast(`💬 Connected to ${name}`);
+  addAIMsg(`Hi! I'm ${name}. How can I help with your beauty routine today? You can ask me about skincare, makeup, or city-specific tips!`);
+};
+
+window.sendChat = async function() {
+  const inp = document.getElementById('chatInput');
+  if (!inp) return;
+  const msg = inp.value.trim();
+  if (!msg || chatTyping) return;
+  inp.value = '';
+
+  addUserMsg(msg);
+  chatTyping = true;
+
+  // Add thinking bubble
+  const thinkId = 'think_' + Date.now();
+  addAIMsg('Analyzing…', thinkId, true);
+
+  try {
+    const city = document.getElementById('occasionInput')?.value || 'Bhopal';
+    const systemPrompt = `You are Vibe AI, a premium AI beauty stylist for Vibe Mirror AI app.
+You specialise in Indian beauty, skincare and makeup. Be warm, specific, and empowering.
+User context: Name="${window.UP?.name||'User'}", Goal="${window.UP?.goal||'Radiant Glow'}", City context="${city}".
+Keep replies under 80 words. Suggest specific Indian brand products when relevant (Sugar, Nykaa, Mamaearth, Lakme, Dot & Key, Plum, MyGlamm).`;
+
+    chatHistory.push({ role: 'user', content: msg });
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (window.GROQ_KEY || '')
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'system', content: systemPrompt }, ...chatHistory.slice(-6)],
+        max_tokens: 200,
+        temperature: 0.85
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'I\'d love to help! Could you tell me more about your skin concern?';
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    // Replace thinking bubble
+    const thinkEl = document.getElementById(thinkId);
+    if (thinkEl) thinkEl.parentElement.remove();
+    addAIMsg(reply);
+    if (window.soundOn !== false) speakText(reply);
+
+  } catch (e) {
+    const thinkEl = document.getElementById(thinkId);
+    if (thinkEl) thinkEl.parentElement.remove();
+    addAIMsg('I\'m having trouble connecting right now. Please check the API configuration and try again!');
+  }
+
+  chatTyping = false;
+};
+
+function addUserMsg(text) {
+  const area = document.getElementById('chatArea');
+  if (!area) return;
+  const div = document.createElement('div');
+  div.className = 'chat-u';
+  div.textContent = text;
+  area.appendChild(div);
+  scrollChat();
+}
+
+function addAIMsg(text, id, typing = false) {
+  const area = document.getElementById('chatArea');
+  if (!area) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-ai';
+  wrap.innerHTML = `
+    <div class="chat-ai-av"><span class="material-symbols-outlined ms" style="font-size:14px">auto_awesome</span></div>
+    <div class="chat-ai-b" ${id ? `id="${id}"` : ''}>${typing ? '<span class="chat-dots">⋯</span>' : escS(text)}</div>`;
+  area.appendChild(wrap);
+  scrollChat();
+}
+
+function scrollChat() {
+  const scroll = document.getElementById('styScroll');
+  if (scroll) setTimeout(() => { scroll.scrollTop = scroll.scrollHeight; }, 100);
+}
+
+function escS(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Voice input for chat
+window.startVoiceInput = function() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('Voice input not supported on this browser');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang = 'en-IN';
+  rec.interimResults = false;
+  rec.onresult = (e) => {
+    const inp = document.getElementById('chatInput');
+    if (inp) inp.value = e.results[0][0].transcript;
+  };
+  rec.onerror = () => showToast('Voice input failed, try typing');
+  rec.start();
+  showToast('🎤 Listening…');
+};
