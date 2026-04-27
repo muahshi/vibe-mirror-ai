@@ -73,7 +73,8 @@ function launchApp() {
   document.getElementById('bottomNav').style.display = 'flex';
   syncGamebar();
   updateProfileUI();
-  initCamera();
+  initFaceMesh();
+  setTimeout(initCamera, 200);
 
   // Personalised greeting after short delay
   setTimeout(() => {
@@ -89,7 +90,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bottomNav').style.display = 'flex';
     syncGamebar();
     updateProfileUI();
-    initCamera();
+    initFaceMesh();
+    setTimeout(initCamera, 300);
 
     setTimeout(() => {
       const n = UP.name ? UP.name : 'beautiful';
@@ -132,35 +134,86 @@ function bumpStreak() {
 }
 
 // ── MEDIAPIPE ─────────────────────────────────────────────────────────────
-const faceMesh = new FaceMesh({
-  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
-});
-faceMesh.setOptions({
-  maxNumFaces: 1,
-  refineLandmarks: true,
-  minDetectionConfidence: 0.55,
-  minTrackingConfidence: 0.55
-});
-faceMesh.onResults(onResults);
+let faceMesh = null;
+
+function initFaceMesh() {
+  try {
+    faceMesh = new FaceMesh({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
+    });
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.55
+    });
+    faceMesh.onResults(onResults);
+  } catch (e) {
+    console.warn('FaceMesh init failed, retrying...', e);
+    setTimeout(initFaceMesh, 1000);
+  }
+}
 
 // ── CAMERA ────────────────────────────────────────────────────────────────
 async function initCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-    videoEl.srcObject = stream;
-    videoEl.onloadedmetadata = () => {
-      camPH.classList.add('hidden');
-      arPill.classList.add('visible');
-      resizeC();
-      scanBtn.disabled = false;
-      loop();
-    };
-  } catch {
-    camPH.querySelector('p').textContent = 'Camera access denied. Please allow and refresh.';
+  // Init FaceMesh first if not done
+  if (!faceMesh) initFaceMesh();
+
+  // Retry logic for mobile browsers
+  let attempts = 0;
+  async function tryCamera() {
+    attempts++;
+    try {
+      // Try ideal constraints first, then fallback
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+      } catch {
+        // Fallback: minimal constraints
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      }
+
+      videoEl.srcObject = stream;
+
+      videoEl.onloadedmetadata = () => {
+        videoEl.play().catch(() => {});
+        if (camPH) camPH.classList.add('hidden');
+        if (arPill) arPill.classList.add('visible');
+        resizeC();
+        if (scanBtn) scanBtn.disabled = false;
+        loop();
+      };
+
+      // Fallback if onloadedmetadata doesn't fire
+      setTimeout(() => {
+        if (videoEl.readyState >= 1 && camPH && !camPH.classList.contains('hidden')) {
+          videoEl.play().catch(() => {});
+          camPH.classList.add('hidden');
+          if (arPill) arPill.classList.add('visible');
+          resizeC();
+          if (scanBtn) scanBtn.disabled = false;
+          loop();
+        }
+      }, 3000);
+
+    } catch (err) {
+      console.warn('Camera attempt', attempts, 'failed:', err.name, err.message);
+      if (attempts < 3) {
+        setTimeout(tryCamera, 1500);
+      } else {
+        if (camPH) {
+          const p = camPH.querySelector('p');
+          if (p) p.textContent = err.name === 'NotAllowedError'
+            ? '🔒 Camera blocked. Tap the lock icon in your browser address bar → Allow camera.'
+            : '📷 Camera unavailable. Check browser permissions and refresh.';
+        }
+      }
+    }
   }
+  tryCamera();
 }
 
 function resizeC() {
@@ -171,7 +224,13 @@ function resizeC() {
 }
 
 async function loop() {
-  if (videoEl.readyState >= 2) await faceMesh.send({ image: videoEl });
+  try {
+    if (videoEl.readyState >= 2 && faceMesh) {
+      await faceMesh.send({ image: videoEl });
+    }
+  } catch (e) {
+    // silent — keep looping
+  }
   requestAnimationFrame(loop);
 }
 
@@ -852,16 +911,16 @@ if (_rr) {
   window._origRR = _rr;
 }
 // We append via mutation — hook doScan's result path
-const _origDoScan = window.doScan;
-window.doScan = async function() {
-  await _origDoScan();
-  // After scan, update beauty stats from lastScore + latestLM
-  if (window.latestLM) {
-    const fd2 = typeof extractData === 'function' ? extractData(window.latestLM) : null;
-    if (fd2) updateBeautyStats(fd2);
-  }
-  updateCoinProgress();
-};
+// Patch renderResult to also update beauty stats (cleaner than wrapping doScan)
+const _origRenderRes2 = window.renderResult;
+if (typeof renderResult === 'function') {
+  const __origRR = renderResult;
+  window.renderResult = renderResult = function(data, fd) {
+    __origRR(data, fd);
+    if (fd) updateBeautyStats(fd);
+    updateCoinProgress();
+  };
+}
 
 // ── COIN PROGRESS BAR ────────────────────────────────────────────────────
 function updateCoinProgress() {
@@ -1125,14 +1184,6 @@ window.awardCoins = function(n) {
   updateCoinProgress();
 };
 
-// ── PATCH renderResult to call updateBeautyStats ──────────────────────────
-const _origRenderRes = window.renderResult;
-if (typeof window.renderResult === 'function') {
-  window.renderResult = function(data, fd) {
-    _origRenderRes(data, fd);
-    if (fd) updateBeautyStats(fd);
-    updateCoinProgress();
-  };
-}
+// renderResult patched above
 
 console.log('✅ Vibe Mirror AI v6.0 — All features loaded');
