@@ -412,6 +412,10 @@ window.doScan = async function () {
   const occ = occInput.value.trim() || `${UP.goal || 'daily glow'} in Bhopal`;
   const fd  = extractData(latestLM);
 
+  // Inject wardrobe context — AI will use owned products first
+  const wardrobeStr = getWardrobeString ? getWardrobeString() : '';
+  const fullOccasion = occ + (wardrobeStr ? ' · ' + wardrobeStr : '');
+
   UP.scanCount = (UP.scanCount || 0) + 1;
   bumpStreak();
   saveUP();
@@ -421,7 +425,7 @@ window.doScan = async function () {
     const res = await fetch('/api/stylist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ faceData: fd, occasion: occ })
+      body: JSON.stringify({ faceData: fd, occasion: fullOccasion })
     });
     if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error || `Error ${res.status}`); }
     const data = await res.json();
