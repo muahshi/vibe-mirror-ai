@@ -289,10 +289,47 @@ body {
 /* ═══════════════════════════════════════
    MIRROR SCREEN
 ═══════════════════════════════════════ */
-#mirrorScreen{background:#000;position:relative}
-/* FULL SCREEN VIDEO FIX */
-#mirrorScreen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-#mirrorScreen canvas{position:absolute;inset:0;width:100%;height:100%}
+/* ═══ CAMERA FULL SCREEN FIX — DO NOT TOUCH ═══ */
+#mirrorScreen{
+  background:#000;
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+}
+#videoEl{
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  transform:scaleX(-1);
+  z-index:2;
+  display:block;
+}
+#auraCanvas{
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  transform:scaleX(-1);
+  z-index:3;
+  pointer-events:none;
+}
+#arCanvas{
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  transform:scaleX(-1);
+  z-index:4;
+  pointer-events:none;
+}
+#camPlaceholder{
+  position:absolute;
+  inset:0; z-index:10;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;background:#000;
+}
+#camPlaceholder.hidden{display:none !important;}
+/* ═══════════════════════════════════════ */
 
 /* Top HUD */
 .mirror-top{
