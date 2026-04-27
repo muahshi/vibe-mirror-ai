@@ -290,6 +290,9 @@ body {
    MIRROR SCREEN
 ═══════════════════════════════════════ */
 #mirrorScreen{background:#000;position:relative}
+/* FULL SCREEN VIDEO FIX */
+#mirrorScreen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#mirrorScreen canvas{position:absolute;inset:0;width:100%;height:100%}
 
 /* Top HUD */
 .mirror-top{
@@ -701,6 +704,65 @@ body {
 .prof-row-l span:first-child{font-size:1.1rem}
 .prof-row-l span:last-child{font-size:14px;color:var(--text)}
 .prof-row .ms{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.22)}
+
+/* ═══════════════════════════════════════
+   WARDROBE SCREEN (My Vanity)
+═══════════════════════════════════════ */
+#wardrobeScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.ward-hdr{padding:52px 24px 16px;background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
+.ward-hdr h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:3px}
+.ward-hdr p{font-size:13px;color:var(--text-m)}
+.ward-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding:16px 24px 100px;-webkit-overflow-scrolling:touch}
+
+/* Add product form */
+.ward-add{
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(229,177,161,0.32);border-radius:18px;padding:20px;margin-bottom:20px;
+}
+.ward-add-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text);margin-bottom:14px}
+.ward-inp{
+  width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);
+  border-radius:10px;padding:11px 14px;font-family:'Manrope',sans-serif;font-size:13px;
+  color:#fff;outline:none;transition:border-color 0.25s;margin-bottom:10px;
+}
+.ward-inp::placeholder{color:rgba(255,255,255,0.3)}
+.ward-inp:focus{border-color:rgba(229,177,161,0.55)}
+.ward-cat-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.wcat{
+  padding:6px 14px;border-radius:999px;border:0.5px solid rgba(255,255,255,0.16);
+  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.2s;
+}
+.wcat.sel{border-color:var(--rose);color:var(--rose);background:rgba(229,177,161,0.1)}
+.ward-add-btn{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--rose),var(--rose2));
+  border:none;border-radius:10px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em;font-weight:700;
+  color:#3a1a10;cursor:pointer;transition:opacity 0.2s;text-transform:uppercase;
+}
+.ward-add-btn:hover{opacity:0.88}
+
+/* Empty state */
+.ward-empty{text-align:center;padding:40px 20px;color:rgba(255,255,255,0.28)}
+.ward-empty .ms{font-family:'Material Symbols Outlined';font-size:48px;margin-bottom:12px;display:block}
+.ward-empty p{font-size:13px;line-height:1.65}
+
+/* Wardrobe items */
+.ward-items{display:flex;flex-direction:column;gap:10px}
+.ward-item{
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(24px);
+  border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+}
+.wi-emoji{font-size:1.8rem;width:44px;height:44px;background:rgba(255,255,255,0.04);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wi-info{flex:1}
+.wi-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.wi-cat{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--rose)}
+.wi-del{background:transparent;border:none;color:rgba(255,255,255,0.25);font-size:18px;cursor:pointer;transition:color 0.2s;padding:4px}
+.wi-del:hover{color:var(--rose)}
+
+.ward-section-lbl{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:18px 0 10px}
 
 /* ═══════════════════════════════════════
    BOTTOM NAV
@@ -1172,6 +1234,50 @@ window.addEventListener('beforeinstallprompt', (e) => {
 </div><!-- profileScreen -->
 
 <!-- ══════════════════════════════════════
+     WARDROBE SCREEN
+══════════════════════════════════════ -->
+<div id="wardrobeScreen" class="screen">
+  <div class="ward-hdr">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;letter-spacing:0.2em;color:var(--rose);margin-bottom:4px">VIBE MIRROR AI</div>
+    <h2>My Vanity</h2>
+    <p>Your digitized makeup wardrobe · AI uses this for personalized looks</p>
+  </div>
+  <div class="ward-scroll">
+
+    <!-- Add product form -->
+    <div class="ward-add">
+      <div class="ward-add-title">+ Add a Product</div>
+      <input class="ward-inp" id="wardName" type="text" placeholder="Product name (e.g. MAC Ruby Woo Lipstick)" maxlength="60" autocomplete="off"/>
+      <input class="ward-inp" id="wardBrand" type="text" placeholder="Brand (e.g. MAC, Lakme, Nykaa)" maxlength="40" autocomplete="off"/>
+      <div class="ward-cat-row" id="wardCats">
+        <div class="wcat sel" onclick="selWCat(this,'Lips')">💋 Lips</div>
+        <div class="wcat" onclick="selWCat(this,'Eyes')">👁️ Eyes</div>
+        <div class="wcat" onclick="selWCat(this,'Face')">🌟 Face</div>
+        <div class="wcat" onclick="selWCat(this,'Skincare')">💧 Skincare</div>
+        <div class="wcat" onclick="selWCat(this,'Brows')">✏️ Brows</div>
+        <div class="wcat" onclick="selWCat(this,'Blush')">🌸 Blush</div>
+        <div class="wcat" onclick="selWCat(this,'Contour')">🏔️ Contour</div>
+        <div class="wcat" onclick="selWCat(this,'Fragrance')">🌹 Fragrance</div>
+      </div>
+      <button class="ward-add-btn" onclick="addToWardrobe()">
+        <span class="material-symbols-outlined ms" style="vertical-align:middle;font-size:16px">add_circle</span>
+        Add to My Vanity
+      </button>
+    </div>
+
+    <!-- Owned products list -->
+    <div id="wardItems">
+      <div class="ward-empty" id="wardEmpty">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <p>Your digital vanity is empty.<br/>Add products you own — AI will use them for personalized looks.</p>
+      </div>
+      <div class="ward-items" id="wardList"></div>
+    </div>
+
+  </div>
+</div><!-- wardrobeScreen -->
+
+<!-- ══════════════════════════════════════
      BOTTOM NAV
 ══════════════════════════════════════ -->
 <nav id="bottomNav" style="display:none">
@@ -1182,6 +1288,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
   <div class="ntab" id="nt-stylist" onclick="switchTab('stylistScreen',this)">
     <span class="material-symbols-outlined ms">content_cut</span>
     <span class="ntab-lbl">Stylist</span>
+  </div>
+  <div class="ntab" id="nt-wardrobe" onclick="switchTab('wardrobeScreen',this);renderWardrobe()">
+    <span class="material-symbols-outlined ms">checkroom</span>
+    <span class="ntab-lbl">Vanity</span>
   </div>
   <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this);renderShop()">
     <span class="material-symbols-outlined ms">shopping_bag</span>
@@ -1283,12 +1393,285 @@ function renderShop(){
     </div>`).join('');
 }
 
-// ── SHARE / IG ────────────────────────────────────────────────────────────
-function goShare(){
-  const sc=document.getElementById('vibeNum').textContent;
-  document.getElementById('profScore').textContent=sc==='—'?'88':sc;
-  switchTab('profileScreen',document.getElementById('nt-profile'));
-  showToast('📷 Screenshot &amp; share to your IG Stories!');
+// ── WARDROBE (My Vanity) ──────────────────────────────────────────────────
+const WARD_KEY = 'vm_wardrobe_v1';
+let selectedWCat = 'Lips';
+
+window.selWCat = function(el, cat) {
+  document.querySelectorAll('.wcat').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedWCat = cat;
+};
+
+window.addToWardrobe = function() {
+  const nameEl  = document.getElementById('wardName');
+  const brandEl = document.getElementById('wardBrand');
+  const name    = nameEl.value.trim();
+  const brand   = brandEl.value.trim();
+  if (!name) { showToast('⚠️ Please enter a product name'); return; }
+
+  const EMOJI_MAP = {Lips:'💋',Eyes:'👁️',Face:'🌟',Skincare:'💧',Brows:'✏️',Blush:'🌸',Contour:'🏔️',Fragrance:'🌹'};
+  const ward = getWardrobe();
+  ward.push({ id: Date.now(), name, brand: brand || 'My Brand', cat: selectedWCat, emoji: EMOJI_MAP[selectedWCat] || '✨', addedAt: new Date().toLocaleDateString() });
+  localStorage.setItem(WARD_KEY, JSON.stringify(ward));
+
+  nameEl.value = ''; brandEl.value = '';
+  renderWardrobe();
+  showToast(`✅ "${name}" added to your Vanity!`);
+  awardCoins(5);
+};
+
+function getWardrobe() {
+  try { return JSON.parse(localStorage.getItem(WARD_KEY) || '[]'); } catch { return []; }
+}
+
+function getWardrobeString() {
+  const w = getWardrobe();
+  if (!w.length) return '';
+  return 'User already owns: ' + w.map(p => `${p.name} by ${p.brand} (${p.cat})`).join(', ') + '. Prioritize these in your suggestions before recommending new purchases.';
+}
+
+window.renderWardrobe = function() {
+  const ward  = getWardrobe();
+  const empty = document.getElementById('wardEmpty');
+  const list  = document.getElementById('wardList');
+  if (!list) return;
+
+  if (!ward.length) {
+    if (empty) empty.style.display = 'block';
+    list.innerHTML = ''; return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  // Group by category
+  const cats = [...new Set(ward.map(w => w.cat))];
+  list.innerHTML = cats.map(cat => {
+    const items = ward.filter(w => w.cat === cat);
+    return `
+      <div class="ward-section-lbl">${cat}</div>
+      ${items.map(item => `
+        <div class="ward-item">
+          <div class="wi-emoji">${item.emoji}</div>
+          <div class="wi-info">
+            <div class="wi-name">${item.name}</div>
+            <div class="wi-cat">${item.brand} · Added ${item.addedAt}</div>
+          </div>
+          <button class="wi-del" onclick="deleteWardItem(${item.id})" title="Remove">✕</button>
+        </div>
+      `).join('')}
+    `;
+  }).join('');
+};
+
+window.deleteWardItem = function(id) {
+  const w = getWardrobe().filter(p => p.id !== id);
+  localStorage.setItem(WARD_KEY, JSON.stringify(w));
+  renderWardrobe();
+  showToast('Removed from vanity');
+};
+
+// ── INSTAGRAM SHARE — Real canvas-generated card ──────────────────────────
+window.goShare = function() {
+  const score     = vibeNum.textContent === '—' ? '88' : vibeNum.textContent;
+  const compliment= document.getElementById('compTitle').textContent.replace(/['"]/g,'');
+  const name      = UP.name || '';
+
+  // Build share card on a canvas
+  const sc  = document.createElement('canvas');
+  sc.width  = 1080;
+  sc.height = 1920; // IG Story aspect ratio 9:16
+  const c   = sc.getContext('2d');
+
+  // Background gradient
+  const bg = c.createLinearGradient(0, 0, 0, 1920);
+  bg.addColorStop(0,   '#0e0a06');
+  bg.addColorStop(0.4, '#1a1008');
+  bg.addColorStop(1,   '#0a0606');
+  c.fillStyle = bg;
+  c.fillRect(0, 0, 1080, 1920);
+
+  // Gold border frame
+  c.strokeStyle = 'rgba(200,150,90,0.7)';
+  c.lineWidth   = 3;
+  c.strokeRect(40, 40, 1000, 1840);
+
+  // Corner accents
+  const corners = [[40,40,1],[40,40,2],[1040,40,3],[1040,40,4],[40,1880,5],[40,1880,6],[1040,1880,7],[1040,1880,8]];
+  c.strokeStyle = 'rgba(229,177,161,0.9)';
+  c.lineWidth   = 4;
+  [[40,40,1,0],[40,40,0,1],[1040,40,-1,0],[1040,40,0,1],[40,1880,1,0],[40,1880,0,-1],[1040,1880,-1,0],[1040,1880,0,-1]].forEach(([x,y,dx,dy])=>{
+    c.beginPath(); c.moveTo(x,y); c.lineTo(x+dx*80,y+dy*80); c.stroke();
+  });
+
+  // Brand
+  c.textAlign   = 'center';
+  c.fillStyle   = 'rgba(229,177,161,0.85)';
+  c.font        = '500 36px "Space Grotesk",sans-serif';
+  c.letterSpacing = '8px';
+  c.fillText('VIBE MIRROR AI', 540, 160);
+
+  c.fillStyle = 'rgba(255,255,255,0.25)';
+  c.font      = '300 22px Manrope,sans-serif';
+  c.fillText('LUXURY BEAUTY INTELLIGENCE', 540, 200);
+
+  // Decorative line
+  c.strokeStyle = 'rgba(229,177,161,0.35)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140,230); c.lineTo(940,230); c.stroke();
+
+  // Glow score big number
+  c.fillStyle = 'rgba(229,177,161,0.12)';
+  c.font      = '300 340px "Cormorant Garamond",serif';
+  c.fillText(score, 540, 700);
+
+  c.fillStyle = '#fff';
+  c.font      = '300 280px "Cormorant Garamond",serif';
+  c.fillText(score, 540, 690);
+
+  // /100
+  c.fillStyle = 'rgba(229,177,161,0.55)';
+  c.font      = '300 64px "Cormorant Garamond",serif';
+  c.fillText('/100', 540, 760);
+
+  // GLOW SCORE label
+  c.fillStyle = 'rgba(229,177,161,0.8)';
+  c.font      = '600 28px "Space Grotesk",sans-serif';
+  c.fillText('GLOW SCORE', 540, 830);
+
+  // Peak radiance dot + text
+  c.fillStyle = '#63f7ff';
+  c.beginPath(); c.arc(440, 895, 8, 0, Math.PI*2); c.fill();
+  c.shadowBlur  = 14; c.shadowColor = '#63f7ff';
+  c.beginPath(); c.arc(440, 895, 8, 0, Math.PI*2); c.fill();
+  c.shadowBlur = 0;
+  c.fillStyle = '#63f7ff';
+  c.font      = '600 24px "Space Grotesk",sans-serif';
+  c.textAlign = 'left';
+  c.fillText('PEAK RADIANCE', 458, 904);
+
+  // Divider
+  c.strokeStyle = 'rgba(229,177,161,0.22)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140, 940); c.lineTo(940, 940); c.stroke();
+
+  // Compliment quote
+  c.textAlign   = 'center';
+  c.fillStyle   = 'rgba(255,255,255,0.88)';
+  c.font        = 'italic 300 54px "Cormorant Garamond",serif';
+  const words   = compliment.split(' ');
+  let line='', y=1060;
+  words.forEach(w => {
+    const test = line + w + ' ';
+    if (c.measureText(test).width > 800 && line) {
+      c.fillText('"'+line.trim()+'"', 540, y); y += 72; line = w + ' ';
+    } else { line = test; }
+  });
+  if (line.trim()) c.fillText('"'+line.trim()+'"', 540, y);
+
+  // Name greeting
+  if (name) {
+    c.fillStyle = 'rgba(229,177,161,0.7)';
+    c.font      = '500 30px Manrope,sans-serif';
+    c.fillText(`— ${name}'s AI Mirror Reading`, 540, y+80);
+  }
+
+  // Stats row
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 140, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(229,177,161,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.streak||1, 260, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('DAY STREAK', 260, 1395);
+
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 420, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(99,247,255,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.scanCount||1, 540, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('SCANS', 540, 1395);
+
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 700, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(229,177,161,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.glowCoins||0, 820, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('GLOW COINS', 820, 1395);
+
+  // Bottom divider
+  c.strokeStyle = 'rgba(229,177,161,0.22)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140,1460); c.lineTo(940,1460); c.stroke();
+
+  // Hashtags
+  c.fillStyle = 'rgba(229,177,161,0.5)';
+  c.font      = '500 26px Manrope,sans-serif';
+  c.fillText('#VibeMirrorAI  #GlowCheck  #BeautyAI  #SkinCare', 540, 1540);
+
+  // URL
+  c.fillStyle = 'rgba(255,255,255,0.25)';
+  c.font      = '400 24px Manrope,sans-serif';
+  c.fillText('vibemirror.ai', 540, 1590);
+
+  // IG-style gradient border at very bottom
+  const igGrad = c.createLinearGradient(140, 0, 940, 0);
+  igGrad.addColorStop(0,   '#f09433');
+  igGrad.addColorStop(0.25,'#e6683c');
+  igGrad.addColorStop(0.5, '#dc2743');
+  igGrad.addColorStop(0.75,'#cc2366');
+  igGrad.addColorStop(1,   '#bc1888');
+  c.strokeStyle = igGrad;
+  c.lineWidth   = 6;
+  c.beginPath(); c.moveTo(140,1640); c.lineTo(940,1640); c.stroke();
+
+  c.fillStyle = 'rgba(255,255,255,0.35)';
+  c.font      = '600 22px "Space Grotesk",sans-serif';
+  c.fillText('Share to Instagram Stories', 540, 1690);
+
+  // Try to download / share
+  sc.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    // Try native share first (mobile)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'vibe-score.png', { type: 'image/png' })] })) {
+      navigator.share({
+        title: `My Glow Score: ${score}/100`,
+        text: `${compliment}\n\n#VibeMirrorAI #GlowCheck`,
+        files: [new File([blob], 'vibe-mirror-glow.png', { type: 'image/png' })]
+      }).catch(() => downloadCard(url));
+    } else {
+      downloadCard(url);
+    }
+  }, 'image/png');
+};
+
+function downloadCard(url) {
+  const a   = document.createElement('a');
+  a.href    = url;
+  a.download= `VibeMirrorAI-GlowScore-${Date.now()}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('📸 Story card downloaded! Open Instagram → Add to Story');
+}
+
+function roundRectC(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
 }
 
 function resetApp(){
