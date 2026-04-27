@@ -1310,8 +1310,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
 ══════════════════════════════════════ -->
 <div id="shopScreen" class="screen">
   <div class="shop-hdr">
-    <h2>Shop the Look</h2>
-    <p>Curated for your skin · Best Indian prices</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2>Shop the Look</h2><p>Curated for your skin · Best Indian prices</p></div>
+      <button onclick="switchTab('shopBotScreen',document.getElementById('nt-shop'));sbotInit()" style="flex-shrink:0;margin-top:4px;padding:6px 12px;background:rgba(99,247,255,0.12);border:0.5px solid rgba(99,247,255,0.35);border-radius:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.08em;color:rgba(99,247,255,0.9);cursor:pointer;white-space:nowrap">🤖 AI Bot</button>
+    </div>
   </div>
   <div class="shop-scroll">
     <div class="filter-row" id="filterRow">
@@ -1389,6 +1391,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
         <h4>Smooth Texture</h4>
         <p>Dermal surface irregularities reduced. Reflective index optimized.</p>
       </div>
+    </div><!-- /sw-grid -->
 
     <!-- Beauty Stats Table -->
     <div class="beauty-stats">
@@ -1429,7 +1432,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
           </tr>
         </tbody>
       </table>
-    </div>
     </div>
 
     <!-- Dermal trajectory -->
@@ -1567,10 +1569,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
   <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this);renderShop()">
     <span class="material-symbols-outlined ms">shopping_bag</span>
     <span class="ntab-lbl">Shop</span>
-  </div>
-  <div class="ntab" id="nt-shopbot" onclick="switchTab('shopBotScreen',this);sbotInit()">
-    <span class="material-symbols-outlined ms">shopping_cart</span>
-    <span class="ntab-lbl">Shop AI</span>
   </div>
   <div class="ntab" id="nt-profile" onclick="switchTab('profileScreen',this)">
     <span class="material-symbols-outlined ms">person</span>
