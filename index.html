@@ -802,168 +802,73 @@ body {
 .bg-ambient::before{content:'';position:absolute;top:-10%;right:-10%;width:50%;height:50%;background:rgba(229,177,161,0.08);border-radius:50%;filter:blur(120px)}
 .bg-ambient::after{content:'';position:absolute;bottom:-10%;left:-10%;width:50%;height:50%;background:rgba(99,247,255,0.04);border-radius:50%;filter:blur(120px)}
 
-/* ═══ TWO-MODE CAMERA TOGGLE ═══ */
-.mode-toggle{
-  position:absolute;top:108px;left:50%;transform:translateX(-50%);
-  z-index:50;display:flex;
-  background:rgba(0,0,0,0.45);backdrop-filter:blur(24px);
-  border:.5px solid rgba(255,255,255,0.18);border-radius:30px;overflow:hidden;
-}
-.mode-btn{
-  padding:7px 20px;font-family:'Space Grotesk',sans-serif;
-  font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
-  color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:none;
-  transition:all 0.25s;white-space:nowrap;
-}
-.mode-btn.active{
-  background:var(--rose);color:#30130a;font-weight:700;
-  border-radius:28px;box-shadow:0 0 16px rgba(229,177,161,0.4);
-}
-
-/* ═══ GLOW CANVAS FILTER ═══ */
-#glowFilter{
-  position:absolute;inset:0;z-index:19;pointer-events:none;
-  background:radial-gradient(ellipse 70% 80% at 50% 38%,rgba(255,230,210,0.09) 0%,transparent 65%);
-  mix-blend-mode:screen;transition:opacity 0.5s;
-}
-
-/* ═══ MAKEUP STEP GUIDE ═══ */
-.makeup-step-guide{
-  position:absolute;top:120px;left:16px;right:16px;z-index:45;
-  background:rgba(0,0,0,0.52);backdrop-filter:blur(16px);
-  border:.5px solid rgba(229,177,161,0.35);border-radius:14px;
-  padding:12px 16px;display:none;
-}
-.makeup-step-guide.show{display:block}
-.msg-label{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
-.msg-steps{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.msg-steps::-webkit-scrollbar{display:none}
-.msg-step{
-  flex-shrink:0;padding:7px 14px;border-radius:20px;border:.5px solid rgba(255,255,255,0.15);
-  font-size:11px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.2s;white-space:nowrap;
-}
-.msg-step.active{background:var(--rose);color:#30130a;border-color:var(--rose);font-weight:700}
-.msg-instruction{font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;margin-top:8px;min-height:18px}
-
-/* ═══ BEAUTY STATS TABLE ═══ */
-.beauty-stats{padding:0 24px 24px}
-.bs-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:14px}
-.bs-table{
-  width:100%;border-collapse:collapse;
-  background:rgba(255,255,255,0.04);
-  border:.5px solid rgba(255,255,255,0.12);border-radius:12px;overflow:hidden;
-}
-.bs-table th{
-  font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.14em;
-  text-transform:uppercase;color:rgba(255,255,255,0.4);padding:10px 12px;
-  text-align:left;border-bottom:.5px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.02);
-}
-.bs-table td{padding:11px 12px;font-size:12px;color:var(--text-m);border-bottom:.5px solid rgba(255,255,255,0.05)}
+/* ── TWO-MODE CAMERA TOGGLE ── */
+.mode-toggle{position:absolute;top:108px;left:50%;transform:translateX(-50%);z-index:50;display:flex;background:rgba(0,0,0,0.45);backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,0.18);border-radius:30px;overflow:hidden}
+.mode-btn{padding:7px 20px;font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:none;transition:all 0.25s;white-space:nowrap}
+.mode-btn.active{background:var(--rose);color:#30130a;font-weight:700;border-radius:28px}
+/* ── GLOW OVERLAY ── */
+#glowFilter{position:absolute;inset:0;z-index:19;pointer-events:none;background:radial-gradient(ellipse 70% 80% at 50% 38%,rgba(255,230,210,0.09) 0%,transparent 65%);mix-blend-mode:screen;transition:opacity 0.5s}
+/* ── MAKEUP STEP GUIDE ── */
+.makeup-steps{position:absolute;top:120px;left:16px;right:16px;z-index:45;background:rgba(0,0,0,0.52);backdrop-filter:blur(16px);border:.5px solid rgba(229,177,161,0.35);border-radius:14px;padding:12px 16px;display:none}
+.makeup-steps.show{display:block}
+.ms-label{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
+.ms-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.ms-scroll::-webkit-scrollbar{display:none}
+.ms-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;border:.5px solid rgba(255,255,255,0.15);font-size:11px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.ms-chip.active{background:var(--rose);color:#30130a;border-color:var(--rose);font-weight:700}
+.ms-instr{font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;margin-top:8px;min-height:18px}
+/* ── BEAUTY STATS TABLE ── */
+.bs-section{padding:0 20px 20px}
+.bs-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:12px}
+.bs-table{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.03);border:.5px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden}
+.bs-table th{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:9px 12px;text-align:left;border-bottom:.5px solid rgba(255,255,255,0.07)}
+.bs-table td{padding:10px 12px;font-size:12px;color:var(--text-m);border-bottom:.5px solid rgba(255,255,255,0.05)}
 .bs-table tr:last-child td{border-bottom:none}
-.bs-bar-cell{width:90px}
-.bs-mini-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;display:inline-block;width:100%}
-.bs-mini-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--rose),var(--gold2));transition:width 1.2s ease}
-.bs-metric-name{font-weight:600;color:var(--text)}
-.bs-val{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--rose);font-weight:400;white-space:nowrap}
+.bs-num{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--rose);font-weight:400}
+.bs-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;width:80px;display:inline-block}
+.bs-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--rose),var(--gold2));transition:width 1.2s ease}
 .bs-delta{font-size:10px;color:#6dbf9e;font-weight:600}
-
-/* ═══ COIN PROGRESS BAR ═══ */
-.coin-progress{
-  margin:0 24px 20px;padding:16px 18px;
-  background:rgba(0,0,0,0.3);backdrop-filter:blur(20px);
-  border:.5px solid rgba(200,150,90,0.3);border-radius:14px;
-}
-.cp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.cp-title{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold2)}
-.cp-val{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);font-weight:300}
-.cp-track{height:6px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden;margin-bottom:8px}
-.cp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2),#f5d9a8);border-radius:6px;transition:width 0.8s ease;max-width:100%}
-.cp-sub{font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5}
-.cp-sub b{color:var(--gold2)}
-
-/* ═══ UV/POLLUTION ALERT ═══ */
-.uv-alert{
-  margin:0 24px 16px;padding:13px 16px;
-  background:rgba(255,160,60,0.12);backdrop-filter:blur(16px);
-  border:.5px solid rgba(255,160,60,0.35);border-radius:12px;
-  display:none;align-items:center;gap:10px;
-}
+/* ── COIN PROGRESS ── */
+.coin-bar{margin:0 20px 16px;padding:14px 16px;background:rgba(0,0,0,0.3);border:.5px solid rgba(200,150,90,0.3);border-radius:14px}
+.coin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.coin-ttl{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;color:var(--gold2)}
+.coin-num{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-light)}
+.coin-track{height:5px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;margin-bottom:6px}
+.coin-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width 0.8s ease}
+.coin-sub{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.5}
+.coin-sub b{color:var(--gold2)}
+/* ── UV ALERT ── */
+.uv-alert{margin:0 20px 14px;padding:12px 14px;background:rgba(255,160,60,0.1);border:.5px solid rgba(255,160,60,0.35);border-radius:12px;display:none;align-items:center;gap:10px}
 .uv-alert.show{display:flex}
-.uv-icon{font-size:1.3rem;flex-shrink:0}
 .uv-text{font-size:12px;color:rgba(255,220,160,0.9);line-height:1.5}
 .uv-text b{color:#ffd080}
-
-/* ═══ SHOPPING BOT TAB ═══ */
+/* ── SHOPPING BOT ── */
 #shopBotScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
-.sbot-header{
-  padding:52px 24px 16px;
-  background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(99,247,255,0.1) 0%,transparent 60%);
-}
-.sbot-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text);margin-bottom:4px}
-.sbot-sub{font-size:12px;color:rgba(99,247,255,0.7);font-family:'Space Grotesk',sans-serif;letter-spacing:0.08em}
-.sbot-scroll{flex:1;overflow-y:auto;padding:12px 16px 120px}
+.sbot-hdr{padding:52px 20px 14px;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(99,247,255,0.1) 0%,transparent 60%)}
+.sbot-hdr h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--text);margin-bottom:2px}
+.sbot-hdr p{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;color:rgba(99,247,255,0.7)}
+.sbot-scroll{flex:1;overflow-y:auto;padding:12px 16px 120px;scrollbar-width:none}
 .sbot-scroll::-webkit-scrollbar{display:none}
 .sbot-msg{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;animation:fadeUp 0.3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .sbot-msg.u{flex-direction:row-reverse}
-.sbot-bubble{
-  max-width:82%;padding:12px 15px;border-radius:18px;
-  font-size:13px;line-height:1.55;
-}
-.sbot-msg.ai .sbot-bubble{
-  background:rgba(99,247,255,0.07);border:.5px solid rgba(99,247,255,0.2);
-  color:var(--text);border-bottom-left-radius:4px;
-}
+.sbot-bubble{max-width:82%;padding:12px 15px;border-radius:18px;font-size:13px;line-height:1.55}
+.sbot-msg.ai .sbot-bubble{background:rgba(99,247,255,0.07);border:.5px solid rgba(99,247,255,0.2);color:var(--text);border-bottom-left-radius:4px}
 .sbot-msg.u  .sbot-bubble{background:var(--rose);color:#30130a;font-weight:500;border-bottom-right-radius:4px}
-.sbot-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(99,247,255,0.3),rgba(99,247,255,0.1));
-  border:.5px solid rgba(99,247,255,0.35);
-  display:flex;align-items:center;justify-content:center;font-size:13px}
-.sbot-prod-card{
-  background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.12);
-  border-radius:14px;padding:14px;margin-top:8px;
-  display:flex;gap:12px;align-items:center;cursor:pointer;transition:all 0.2s;
-}
-.sbot-prod-card:active{transform:scale(0.98)}
-.sbot-prod-emoji{font-size:2rem;flex-shrink:0}
-.sbot-prod-info{flex:1}
-.sbot-prod-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
-.sbot-prod-reason{font-size:11px;color:var(--text-m);line-height:1.4;margin-bottom:6px}
-.sbot-prod-price{font-size:13px;font-weight:700;color:var(--gold2)}
-.sbot-buy-btn{
-  padding:6px 14px;background:linear-gradient(135deg,var(--gold),var(--gold2));
-  border:none;border-radius:20px;font-family:'Space Grotesk',sans-serif;
-  font-size:10px;letter-spacing:0.08em;color:#1a1410;font-weight:700;cursor:pointer;
-}
-.sbot-quick-row{display:flex;gap:8px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none}
-.sbot-quick-row::-webkit-scrollbar{display:none}
-.sbot-qchip{
-  flex-shrink:0;padding:7px 14px;background:rgba(99,247,255,0.07);
-  border:.5px solid rgba(99,247,255,0.25);border-radius:20px;
-  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.08em;
-  color:rgba(99,247,255,0.8);cursor:pointer;white-space:nowrap;transition:all 0.2s;
-}
-.sbot-qchip:active{background:rgba(99,247,255,0.15)}
-.sbot-input-row{
-  position:absolute;bottom:0;left:0;right:0;z-index:50;
-  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
-  background:rgba(0,0,0,0.55);backdrop-filter:blur(30px);
-  border-top:.5px solid rgba(99,247,255,0.15);
-  display:flex;gap:10px;align-items:center;
-}
-.sbot-inp{
-  flex:1;background:rgba(99,247,255,0.06);border:.5px solid rgba(99,247,255,0.2);
-  border-radius:24px;padding:11px 18px;font-family:'Manrope',sans-serif;
-  font-size:13px;color:var(--text);outline:none;
-}
+.sbot-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,rgba(99,247,255,0.25),rgba(99,247,255,0.08));border:.5px solid rgba(99,247,255,0.3);display:flex;align-items:center;justify-content:center;font-size:13px}
+.sbot-pcard{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;margin-top:6px;display:flex;gap:10px;align-items:center;cursor:pointer}
+.sbot-pcard:active{transform:scale(0.98)}
+.sbot-pname{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.sbot-preason{font-size:11px;color:var(--text-m);line-height:1.4;margin-bottom:4px}
+.sbot-pprice{font-size:13px;font-weight:700;color:var(--gold2)}
+.sbot-pbuy{padding:5px 12px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:#1a1410;font-weight:700;cursor:pointer;margin-left:auto}
+.sbot-qrow{display:flex;gap:8px;overflow-x:auto;padding:6px 16px;scrollbar-width:none}
+.sbot-qrow::-webkit-scrollbar{display:none}
+.sbot-qchip{flex-shrink:0;padding:7px 14px;background:rgba(99,247,255,0.07);border:.5px solid rgba(99,247,255,0.22);border-radius:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.07em;color:rgba(99,247,255,0.8);cursor:pointer;white-space:nowrap}
+.sbot-irow{position:absolute;bottom:0;left:0;right:0;z-index:50;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(0,0,0,0.55);backdrop-filter:blur(30px);border-top:.5px solid rgba(99,247,255,0.15);display:flex;gap:8px;align-items:center}
+.sbot-inp{flex:1;background:rgba(99,247,255,0.06);border:.5px solid rgba(99,247,255,0.2);border-radius:22px;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--text);outline:none}
 .sbot-inp::placeholder{color:rgba(255,255,255,0.28)}
-.sbot-send{
-  width:42px;height:42px;border-radius:50%;flex-shrink:0;
-  background:rgba(99,247,255,0.2);border:.5px solid rgba(99,247,255,0.4);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-family:'Material Symbols Outlined';font-size:18px;color:var(--cyan);
-  transition:transform 0.15s;
-}
+.sbot-send{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:rgba(99,247,255,0.18);border:.5px solid rgba(99,247,255,0.4);color:var(--cyan);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
 .sbot-send:active{transform:scale(0.9)}
 </style>
 <script>
@@ -1158,7 +1063,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   </div>
 
 
-  <!-- Glow filter overlay -->
+  <!-- Glow filter -->
   <div id="glowFilter"></div>
 
   <!-- Two-Mode Toggle -->
@@ -1167,17 +1072,17 @@ window.addEventListener('beforeinstallprompt', (e) => {
     <button class="mode-btn" id="modeGuide" onclick="setMode('guide')">💄 Guide</button>
   </div>
 
-  <!-- Makeup Step Guide (Guide mode only) -->
-  <div class="makeup-step-guide" id="makeupStepGuide">
-    <div class="msg-label">Step-by-Step Coach</div>
-    <div class="msg-steps" id="makeupSteps">
-      <div class="msg-step active" onclick="selectMakeupStep(this,'eyes')">👁 Eyes</div>
-      <div class="msg-step" onclick="selectMakeupStep(this,'brows')">✏ Brows</div>
-      <div class="msg-step" onclick="selectMakeupStep(this,'contour')">🏔 Contour</div>
-      <div class="msg-step" onclick="selectMakeupStep(this,'blush')">🌸 Blush</div>
-      <div class="msg-step" onclick="selectMakeupStep(this,'lips')">💋 Lips</div>
+  <!-- Makeup Step Guide (Guide mode) -->
+  <div class="makeup-steps" id="makeupSteps">
+    <div class="ms-label">Step-by-Step Coach</div>
+    <div class="ms-scroll">
+      <div class="ms-chip active" onclick="selStep(this,'eyes')">👁 Eyes</div>
+      <div class="ms-chip" onclick="selStep(this,'brows')">✏ Brows</div>
+      <div class="ms-chip" onclick="selStep(this,'contour')">🏔 Contour</div>
+      <div class="ms-chip" onclick="selStep(this,'blush')">🌸 Blush</div>
+      <div class="ms-chip" onclick="selStep(this,'lips')">💋 Lips</div>
     </div>
-    <div class="msg-instruction" id="makeupInstruction">Apply a thin line along your upper lash line, extending slightly at the outer corner.</div>
+    <div class="ms-instr" id="msInstr">Apply a thin line along your upper lash line, extending slightly at the outer corner.</div>
   </div>
   <!-- Brand watermark -->
   <div class="mirror-brand">VIBE MIRROR AI<small>LUXURY BEAUTY INTELLIGENCE</small></div>
@@ -1228,8 +1133,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
       <button class="abtn abtn-scan" id="scanBtn" disabled onclick="doScan()">
         <span class="material-symbols-outlined ms">center_focus_weak</span>Scan Skin
       </button>
-      <button class="abtn abtn-ar" id="modeActionBtn" onclick="modeAction()">
-        <span class="material-symbols-outlined ms">face_retouching_natural</span><span id="modeActionLbl">Apply AR Look</span>
+      <button class="abtn abtn-ar" onclick="goShare()">
+        <span class="material-symbols-outlined ms">face_retouching_natural</span>Apply AR Look
       </button>
     </div>
   </div>
@@ -1309,11 +1214,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
      SHOP SCREEN
 ══════════════════════════════════════ -->
 <div id="shopScreen" class="screen">
-  <div class="shop-hdr">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div><h2>Shop the Look</h2><p>Curated for your skin · Best Indian prices</p></div>
-      <button onclick="switchTab('shopBotScreen',document.getElementById('nt-shop'));sbotInit()" style="flex-shrink:0;margin-top:4px;padding:6px 12px;background:rgba(99,247,255,0.12);border:0.5px solid rgba(99,247,255,0.35);border-radius:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.08em;color:rgba(99,247,255,0.9);cursor:pointer;white-space:nowrap">🤖 AI Bot</button>
-    </div>
+  <div class="shop-hdr" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h2>Shop the Look</h2></div>
+    <button onclick="switchTab('shopBotScreen',document.getElementById('nt-shopbot'))" style="flex-shrink:0;padding:6px 12px;background:rgba(99,247,255,0.1);border:.5px solid rgba(99,247,255,0.3);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:rgba(99,247,255,0.85);cursor:pointer;margin-top:4px">🤖 AI Bot</button>
+    <p>Curated for your skin · Best Indian prices</p>
   </div>
   <div class="shop-scroll">
     <div class="filter-row" id="filterRow">
@@ -1345,22 +1249,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
       <p class="prof-sub">A clinical distillation of your journey towards luminous perfection.</p>
     </div>
 
-
-    <!-- UV / Pollution Alert -->
-    <div class="uv-alert" id="uvAlert">
-      <span class="uv-icon">☀️</span>
-      <div class="uv-text" id="uvText"><b>UV Alert — Bhopal</b><br/>High UV index detected. Don't step out without SPF 50!</div>
-    </div>
-
-    <!-- Coin Progress Bar -->
-    <div class="coin-progress">
-      <div class="cp-header">
-        <span class="cp-title">🌟 Pro Unlock Progress</span>
-        <span class="cp-val"><span id="cpCoins">0</span>/100 coins</span>
-      </div>
-      <div class="cp-track"><div class="cp-fill" id="cpFill" style="width:0%"></div></div>
-      <div class="cp-sub">Collect <b>100 Glow Coins</b> (1 coin = 1 cent) to unlock <b>Pro for 30 days FREE</b>.<br/>+1 coin daily · +20 per scan · +2 for IG share</div>
-    </div>
     <!-- Glow ring -->
     <div class="gring-wrap">
       <div class="gring">
@@ -1391,47 +1279,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
         <h4>Smooth Texture</h4>
         <p>Dermal surface irregularities reduced. Reflective index optimized.</p>
       </div>
-    </div><!-- /sw-grid -->
-
-    <!-- Beauty Stats Table -->
-    <div class="beauty-stats">
-      <div class="bs-title">Beauty Analytics</div>
-      <table class="bs-table">
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Score</th>
-            <th style="width:90px">Level</th>
-            <th>Trend</th>
-          </tr>
-        </thead>
-        <tbody id="bsTableBody">
-          <tr>
-            <td class="bs-metric-name">💧 Hydration Index</td>
-            <td class="bs-val" id="bsHydration">—</td>
-            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsHBar" style="width:0%"></div></div></td>
-            <td class="bs-delta" id="bsHDelta">Scan to see</td>
-          </tr>
-          <tr>
-            <td class="bs-metric-name">✨ Glow Factor</td>
-            <td class="bs-val" id="bsGlow">—</td>
-            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsGBar" style="width:0%"></div></td>
-            <td class="bs-delta" id="bsGDelta">Scan to see</td>
-          </tr>
-          <tr>
-            <td class="bs-metric-name">◈ Symmetry Score</td>
-            <td class="bs-val" id="bsSym">—</td>
-            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsSBar" style="width:0%"></div></td>
-            <td class="bs-delta" id="bsSDelta">Scan to see</td>
-          </tr>
-          <tr>
-            <td class="bs-metric-name">🎨 Texture Index</td>
-            <td class="bs-val" id="bsTexture">—</td>
-            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsTBar" style="width:0%"></div></td>
-            <td class="bs-delta" id="bsTDelta">Scan to see</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
 
     <!-- Dermal trajectory -->
@@ -1530,25 +1377,25 @@ window.addEventListener('beforeinstallprompt', (e) => {
      SHOPPING BOT SCREEN
 ══════════════════════════════════════ -->
 <div id="shopBotScreen" class="screen">
-  <div class="sbot-header">
-    <div class="sbot-title">AI Shopping Bot</div>
-    <div class="sbot-sub">✦ SALES INTELLIGENCE ACTIVE</div>
+  <div class="sbot-hdr">
+    <h2>AI Shopping Bot</h2>
+    <p>✦ SALES INTELLIGENCE · FACE-DATA POWERED</p>
   </div>
-  <div class="sbot-quick-row">
-    <div class="sbot-qchip" onclick="sbotQuick(this)">🔬 Analyze my skin</div>
-    <div class="sbot-qchip" onclick="sbotQuick(this)">💄 Best lipstick for me?</div>
-    <div class="sbot-qchip" onclick="sbotQuick(this)">☀️ Beat Bhopal heat</div>
-    <div class="sbot-qchip" onclick="sbotQuick(this)">🌸 Dewy glass skin</div>
-    <div class="sbot-qchip" onclick="sbotQuick(this)">💎 Under ₹500 picks</div>
+  <div class="sbot-qrow">
+    <div class="sbot-qchip" onclick="sbotQ(this)">🔬 Analyze my skin</div>
+    <div class="sbot-qchip" onclick="sbotQ(this)">💄 Best lipstick for me</div>
+    <div class="sbot-qchip" onclick="sbotQ(this)">☀️ Beat Bhopal heat</div>
+    <div class="sbot-qchip" onclick="sbotQ(this)">✨ Glass skin routine</div>
+    <div class="sbot-qchip" onclick="sbotQ(this)">💎 Best under ₹500</div>
   </div>
   <div class="sbot-scroll" id="sbotScroll">
     <div class="sbot-msg ai">
       <div class="sbot-av">🛒</div>
-      <div class="sbot-bubble">Hi! I'm your AI Shopping Stylist. I analyze your face scan data and Bhopal's climate to find products you'll <em>actually</em> love. Tell me your skin concern or tap a quick question! ✨</div>
+      <div class="sbot-bubble">Hi! I'm your AI Shopping Stylist. I'll analyze your face scan and Bhopal's climate to suggest products you'll actually love. Ask me anything! ✨</div>
     </div>
   </div>
-  <div class="sbot-input-row">
-    <input class="sbot-inp" id="sbotInput" type="text" placeholder="What's your skin concern today?" onkeydown="if(event.key==='Enter')sbotSend()"/>
+  <div class="sbot-irow">
+    <input class="sbot-inp" id="sbotIn" type="text" placeholder="What's your skin concern today?" onkeydown="if(event.key==='Enter')sbotSend()"/>
     <div class="sbot-send" onclick="sbotSend()">↑</div>
   </div>
 </div>
@@ -1564,7 +1411,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   </div>
   <div class="ntab" id="nt-wardrobe" onclick="switchTab('wardrobeScreen',this);renderWardrobe()">
     <span class="material-symbols-outlined ms">checkroom</span>
-    <span class="ntab-lbl">Vanity</span>
+    <span class="ntab-lbl">Shop AI</span>
   </div>
   <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this);renderShop()">
     <span class="material-symbols-outlined ms">shopping_bag</span>
