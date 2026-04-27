@@ -26,58 +26,33 @@ export default async function handler(req, res) {
   }
 
   // ── Parse Body ─────────────────────────────────────────────────────────────
-  const mode = req.body?.mode || 'scan';
+  const _mode = req.body?.mode || 'scan';
 
-  // ── CHAT MODE (stylist screen) ──────────────────────────────────────────
-  if (mode === 'chat') {
-    const { message = '', context = '', chatHistory = [], userName = '', goal = '' } = req.body;
-    const cityCtx = req.body.city || 'Bhopal';
-    const sysP = `You are Aura, a warm witty AI beauty bestie from India. You speak like a cool supportive best friend who's also a world-class makeup artist and skincare expert. You know Indian brands deeply (Sugar, Lakme, Nykaa, MyGlamm, Mamaearth, Dot & Key, Minimalist, Plum, etc). Be empowering, specific, and fun. Use occasional Hindi/Hinglish naturally. User: Name="${userName}", Goal="${goal}", City="${cityCtx}". Keep replies under 80 words. Always end with one actionable tip.`;
-    const msgs = [
-      { role: 'system', content: sysP },
-      ...chatHistory.slice(-6).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
-      { role: 'user', content: String(message).slice(0, 400) }
-    ];
+  if (_mode === 'chat') {
+    const {message='',chatHistory=[],userName='',goal='',city='Bhopal'} = req.body;
+    const sys = `You are Aura, warm AI beauty bestie from India. Know Indian brands deeply. Be empowering. User: Name="${userName}", Goal="${goal}", City="${city}". Max 80 words.`;
+    const msgs = [{role:'system',content:sys},...chatHistory.slice(-6).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content})),{role:'user',content:String(message).slice(0,400)}];
     try {
-      const gr = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: msgs, temperature: 0.88, max_tokens: 250 })
-      });
-      const gd = await gr.json();
-      return res.status(200).json({ reply: gd.choices?.[0]?.message?.content || 'You look amazing! 💫' });
-    } catch { return res.status(502).json({ error: 'Chat unavailable' }); }
+      const gr=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${GROQ_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs,temperature:0.88,max_tokens:250})});
+      const gd=await gr.json();
+      return res.status(200).json({reply:gd.choices?.[0]?.message?.content||'You look amazing!'});
+    } catch { return res.status(502).json({error:'Chat unavailable'}); }
   }
 
-  // ── SHOPPING BOT MODE ───────────────────────────────────────────────────
-  if (mode === 'shopping_bot') {
-    const { message = '', faceData: fd2, occasion: occ2 = '', userName: un2 = '', skinTone = 'medium', chatHistory: ch2 = [] } = req.body;
-    const cityCtx2 = (occ2 + '').includes('Bhopal') ? 'Bhopal' : (req.body.city || 'Bhopal');
-    const locationCtx2 = detectLocation(occ2 + cityCtx2);
-    const fd2S = fd2 ? `Face: ${fd2.faceShape}, Vibe: ${fd2.vibeScore}/100, Skin tone: ${skinTone}` : `Skin tone: ${skinTone}`;
-    const sbotSys = `You are an AI Shopping Stylist for Vibe Mirror AI — a premium beauty app. Your SOLE mission is to recommend products that the user NEEDS based on their scan data and city climate. Be persuasive, specific, and data-driven. Reference their face scan results. Create urgency when appropriate (e.g. "Bhopal's UV is damaging your glow RIGHT NOW").
-User profile: ${fd2S}. Location: ${locationCtx2}. Name: ${un2 || 'beautiful'}.
-Rules: Suggest only real Indian brands (Sugar, Nykaa, Lakme, MyGlamm, Mamaearth, Dot & Key, Minimalist, Plum, Biotique, Colorbar, Forest Essentials). Always include price in INR. Be warm but persuasive. Max 70 words per reply. ALWAYS recommend 1-2 specific products with prices.
-Respond in JSON: { "reply": "your message", "products": [{"name":"...", "description":"...", "platform":"Nykaa|Amazon", "price":"number", "emoji":"💄", "affiliateUrl":"url"}] }`;
-    const sbotMsgs = [
-      { role: 'system', content: sbotSys },
-      ...ch2.slice(-4).map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: String(message).slice(0, 300) }
-    ];
+  if (_mode === 'shopping_bot') {
+    const {message='',faceData:fd2,occasion:occ2='',userName:un2='',skinTone='medium',chatHistory:ch2=[]} = req.body;
+    const city2=req.body.city||'Bhopal';
+    const fdStr=fd2?`Face: ${fd2.faceShape}, Vibe: ${fd2.vibeScore}/100, Skin: ${skinTone}`:`Skin: ${skinTone}`;
+    const sys2=`You are AI Shopping Stylist for Vibe Mirror AI. Suggest real Indian brands (Sugar,Nykaa,Lakme,MyGlamm,Mamaearth,Dot&Key,Minimalist,Plum). Be persuasive. User: ${fdStr}. City:${city2}. Max 70 words. JSON only: {"reply":"...","products":[{"name":"...","description":"...","platform":"Nykaa","price":"number","emoji":"💄"}]}`;
+    const msgs2=[{role:'system',content:sys2},...ch2.slice(-4).map(m=>({role:m.role,content:m.content})),{role:'user',content:String(message).slice(0,300)}];
     try {
-      const gr2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: sbotMsgs, temperature: 0.85, max_tokens: 400, response_format: { type: 'json_object' } })
-      });
-      const gd2 = await gr2.json();
-      let parsed2 = {};
-      try { parsed2 = JSON.parse(gd2.choices?.[0]?.message?.content || '{}'); } catch {}
-      return res.status(200).json({ reply: parsed2.reply || 'Here are my picks for you!', products: parsed2.products || [] });
-    } catch { return res.status(502).json({ error: 'Shopping bot unavailable', reply: 'Connection issue. Please try again!', products: [] }); }
+      const gr2=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${GROQ_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs2,temperature:0.85,max_tokens:400,response_format:{type:'json_object'}})});
+      const gd2=await gr2.json();
+      let p2={};try{p2=JSON.parse(gd2.choices?.[0]?.message?.content||'{}')}catch{}
+      return res.status(200).json({reply:p2.reply||'Here are my picks!',products:p2.products||[]});
+    } catch { return res.status(502).json({reply:'Try again!',products:[]}); }
   }
 
-  // ── SCAN MODE (default) ──────────────────────────────────────────────────
   let faceData, occasion;
   try {
     ({ faceData, occasion } = req.body);
