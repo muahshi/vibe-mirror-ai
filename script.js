@@ -732,3 +732,407 @@ window.startVoiceInput = function() {
   rec.start();
   showToast('🎤 Listening…');
 };
+
+// ═══════════════════════════════════════════════════════════════════════
+//  VIBE MIRROR AI — v6.0 NEW FEATURES
+//  Two-Mode Camera · Beauty Stats · Coin Economy · UV Alert
+//  AI Shopping Bot · Makeup Step Coach · IG Share +2 coins
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── CAMERA MODE STATE ────────────────────────────────────────────────────
+let currentMode = 'glow';   // 'glow' | 'guide'
+let currentMakeupStep = 'eyes';
+
+const MAKEUP_INSTRUCTIONS = {
+  eyes:    "Apply a thin line along your upper lash line. Extend slightly at the outer corner for a subtle cat-eye. The cyan guide shows your exact path.",
+  brows:   "Fill sparse areas with light strokes following the golden guide arcs. Start from the inner edge, feather outward with a brow pencil.",
+  contour: "Blend a matte bronzer along the dotted arc lines. Start from temple downward. Less is more — build gradually.",
+  blush:   "Smile and apply blush on the highlighted cheekbone circle in a circular upward motion. Blend toward temples.",
+  lips:    "Line just outside your natural lip edge along the rose guide. Fill in with a long-wear bullet or liquid lipstick."
+};
+
+window.setMode = function(mode) {
+  currentMode = mode;
+  document.getElementById('modeGlow').classList.toggle('active', mode === 'glow');
+  document.getElementById('modeGuide').classList.toggle('active', mode === 'guide');
+  document.getElementById('glowFilter').style.opacity = mode === 'glow' ? '1' : '0';
+  const guide = document.getElementById('makeupStepGuide');
+  guide.classList.toggle('show', mode === 'guide');
+  document.getElementById('modeActionLbl').textContent = mode === 'glow' ? 'Apply AR Look' : 'Voice Coach';
+  if (mode === 'guide') {
+    selectMakeupStep(document.querySelector('.msg-step.active') || document.querySelector('.msg-step'), currentMakeupStep);
+    showToast('💄 Makeup Guide activated — select a step!');
+    speakText('Makeup Guide mode on. I will coach you step by step.');
+  } else {
+    showToast('✦ Glow Mirror — daily luxury mode');
+    speakText('Glow mode. You look stunning.');
+  }
+};
+
+window.selectMakeupStep = function(el, step) {
+  document.querySelectorAll('.msg-step').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  currentMakeupStep = step;
+  document.getElementById('makeupInstruction').textContent = MAKEUP_INSTRUCTIONS[step] || '';
+  speakText(MAKEUP_INSTRUCTIONS[step]);
+};
+
+window.modeAction = function() {
+  if (currentMode === 'guide') {
+    const steps = Object.keys(MAKEUP_INSTRUCTIONS);
+    const cur = steps.indexOf(currentMakeupStep);
+    const next = steps[(cur + 1) % steps.length];
+    const nextEl = Array.from(document.querySelectorAll('.msg-step'))
+      .find(el => el.getAttribute('onclick')?.includes(next));
+    if (nextEl) selectMakeupStep(nextEl, next);
+  } else {
+    goShare();
+  }
+};
+
+// ── OVERRIDE drawSkeleton to respect mode ────────────────────────────────
+const _origDraw = drawSkeleton;
+const _origAura = drawAura;
+
+// Patch onResults to apply glow css filter in glow mode
+const _origOnResults = onResults;
+// We can't easily re-override, so we patch the auraCanvas rendering instead
+// The glowFilter div handles the CSS approach — it's already in HTML.
+
+// ── BEAUTY STATS (derived from face landmarks) ───────────────────────────
+let lastFaceData = null;
+
+// Hook into renderResult to also update beauty stats
+const _origRenderResult = window.renderResult || renderResult;
+
+function updateBeautyStats(fd) {
+  if (!fd) return;
+  // Derive plausible metrics from face ratios + vibe score
+  const base = fd.vibeScore || 80;
+  const hydration = Math.min(99, Math.round(base * 0.88 + (fd.ratios?.lipFullness || 0.1) * 20 + 5));
+  const glow      = Math.min(99, Math.round(base * 0.93 + Math.random() * 4));
+  const sym       = fd.symmetryScore || Math.min(98, Math.round(91 + (fd.ratios?.eyeSpacing || 0.3) * 10));
+  const texture   = Math.min(99, Math.round(base * 0.85 + (1 - (fd.ratios?.faceAspect || 0.8)) * 8 + 3));
+
+  const set = (id, barId, val, delta) => {
+    const el = document.getElementById(id);
+    const bar = document.getElementById(barId);
+    const d = document.getElementById(delta);
+    if (el)  el.textContent = val;
+    if (bar) bar.style.width = val + '%';
+    if (d)   { d.textContent = '+' + Math.round(val * 0.08) + '% this week'; }
+  };
+
+  set('bsHydration','bsHBar','bsHDelta', hydration);
+  set('bsGlow',     'bsGBar','bsGDelta', glow);
+  set('bsSym',      'bsSBar','bsSDelta', sym);
+  set('bsTexture',  'bsTBar','bsTDelta', texture);
+
+  // Also update glow ring if on profile screen
+  const ps = document.getElementById('profScore');
+  if (ps) ps.textContent = fd.vibeScore || base;
+
+  lastFaceData = fd;
+  saveBeautyStats({ hydration, glow, sym, texture, vibeScore: base, date: new Date().toDateString() });
+}
+
+function saveBeautyStats(stats) {
+  try {
+    let history = JSON.parse(localStorage.getItem('vm_beauty_stats') || '[]');
+    history = history.filter(s => s.date !== stats.date);
+    history.push(stats);
+    history = history.slice(-30);
+    localStorage.setItem('vm_beauty_stats', JSON.stringify(history));
+  } catch {}
+}
+
+// Patch the existing renderResult — add stats update
+const _rr = typeof renderResult !== 'undefined' ? renderResult : null;
+if (_rr) {
+  window._origRR = _rr;
+}
+// We append via mutation — hook doScan's result path
+const _origDoScan = window.doScan;
+window.doScan = async function() {
+  await _origDoScan();
+  // After scan, update beauty stats from lastScore + latestLM
+  if (window.latestLM) {
+    const fd2 = typeof extractData === 'function' ? extractData(window.latestLM) : null;
+    if (fd2) updateBeautyStats(fd2);
+  }
+  updateCoinProgress();
+};
+
+// ── COIN PROGRESS BAR ────────────────────────────────────────────────────
+function updateCoinProgress() {
+  const coins = window.UP?.glowCoins || 0;
+  const cpCoins = document.getElementById('cpCoins');
+  const cpFill  = document.getElementById('cpFill');
+  if (cpCoins) cpCoins.textContent = coins;
+  if (cpFill)  cpFill.style.width  = Math.min(100, (coins / 100) * 100) + '%';
+  // Also sync gamebar
+  const gEl = document.getElementById('coinsVal');
+  if (gEl) gEl.textContent = coins;
+  if (coins >= 100) showToast('🎉 100 Coins! PRO unlocked for 30 days!');
+}
+
+// Update coin progress when page loads too
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateCoinProgress, 800);
+  fetchUVData();
+  loadBeautyStatsFromStorage();
+});
+
+function loadBeautyStatsFromStorage() {
+  try {
+    const history = JSON.parse(localStorage.getItem('vm_beauty_stats') || '[]');
+    const latest = history[history.length - 1];
+    if (latest) {
+      updateBeautyStats({ ...latest, ratios: { lipFullness: 0.1, eyeSpacing: 0.3, faceAspect: 0.8 } });
+    }
+  } catch {}
+}
+
+// ── UV / POLLUTION ALERT ─────────────────────────────────────────────────
+async function fetchUVData() {
+  try {
+    // Use weather to derive UV index estimate
+    const city = window.UP?.city || 'Bhopal';
+    // Open-Meteo free API — no key needed
+    let lat = 23.2599, lon = 77.4126; // Bhopal default
+    try {
+      const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+      const gd = await geo.json();
+      if (gd.results?.[0]) { lat = gd.results[0].latitude; lon = gd.results[0].longitude; }
+    } catch {}
+
+    const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=uv_index_max&timezone=auto&forecast_days=1`);
+    const wd = await w.json();
+    const uv   = wd.daily?.uv_index_max?.[0] || 0;
+    const temp = wd.current?.temperature_2m || 0;
+
+    const alertEl = document.getElementById('uvAlert');
+    const alertTxt = document.getElementById('uvText');
+    if (!alertEl || !alertTxt) return;
+
+    if (uv >= 6 || temp >= 33) {
+      let msg = '';
+      if (uv >= 8) msg = `<b>🚨 Extreme UV (${uv}) — ${city}</b><br/>Mandatory SPF 50+ before stepping out! Your skin needs protection NOW.`;
+      else if (uv >= 6) msg = `<b>☀️ High UV (${uv}) — ${city}</b><br/>Apply SPF 50+ sunscreen. Bhopal's heat affects your glow without protection.`;
+      else msg = `<b>🌡️ ${Math.round(temp)}°C in ${city}</b><br/>This heat demands matte, long-wear foundation. Don't let sweat ruin your look!`;
+      alertTxt.innerHTML = msg;
+      alertEl.classList.add('show');
+
+      // Speak alert once per day
+      const alertKey = 'vm_uv_alert_' + new Date().toDateString();
+      if (!localStorage.getItem(alertKey)) {
+        setTimeout(() => speakText(`UV alert for ${city}. ` + alertTxt.innerText.slice(0, 80)), 3000);
+        localStorage.setItem(alertKey, '1');
+      }
+    }
+  } catch {}
+}
+
+// ── IG SHARE +2 COINS ────────────────────────────────────────────────────
+window.goShare = async function() {
+  const score = window.lastScore || window.UP?.glowCoins || 88;
+  const name  = window.UP?.name || 'You';
+  const shareText = `✨ ${name}'s Vibe Mirror AI Score: ${score}/100!\n"AI says I'm glowing today 🔥"\nGet your free analysis 👇\nvibemirror.ai`;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'My Glow Score 🌟', text: shareText });
+      // +2 bonus coins for sharing
+      if (window.UP) {
+        window.awardCoins(2);
+        showToast('🎁 +2 Coins awarded for sharing! Thanks for spreading the glow ✨');
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      showToast('📋 Glow card copied! Paste on Instagram & earn +2 coins when you share!');
+      if (window.UP) window.awardCoins(2);
+    }
+    updateCoinProgress();
+  } catch (e) {
+    showToast('📱 Copy your Glow Score and share on Instagram!');
+  }
+};
+
+// ── AI SHOPPING BOT ──────────────────────────────────────────────────────
+let sbotHistory = [];
+let sbotReady   = false;
+
+window.sbotInit = function() {
+  if (sbotReady) return;
+  sbotReady = true;
+  // Show personalized opener if we have face data
+  if (lastFaceData || window.UP?.goal) {
+    const goal = window.UP?.goal || 'Radiant Glow';
+    const city = window.UP?.city || 'Bhopal';
+    setTimeout(() => {
+      sbotAddAI(`Based on your ${goal} goal and ${city}'s climate, I've already shortlisted products for you. Tap any question above, or describe your biggest skin concern right now! 🎯`);
+    }, 600);
+  }
+};
+
+window.sbotQuick = function(el) {
+  const txt = el.textContent.trim();
+  sbotAddUser(txt);
+  sbotCallAI(txt);
+};
+
+window.sbotSend = async function() {
+  const inp = document.getElementById('sbotInput');
+  if (!inp) return;
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  sbotAddUser(msg);
+  await sbotCallAI(msg);
+};
+
+async function sbotCallAI(msg) {
+  const thinkId = 'sbt_' + Date.now();
+  sbotAddAI('Analyzing your profile…', thinkId, true);
+
+  try {
+    const skinCtx = lastFaceData
+      ? `Face: ${lastFaceData.faceShape}, Vibe: ${lastFaceData.vibeScore}/100, Symmetry: ${lastFaceData.symmetryScore}%`
+      : 'No scan data yet — give general advice';
+
+    sbotHistory.push({ role: 'user', content: msg });
+
+    const res = await fetch('/api/stylist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'shopping_bot',
+        message: msg,
+        faceData: lastFaceData || { faceShape: 'oval', vibeScore: 80, symmetryScore: 94 },
+        occasion: `Shopping assistant mode. ${skinCtx}. City: ${window.UP?.city || 'Bhopal'}.`,
+        userName: window.UP?.name || '',
+        skinTone: window.UP?.skinTone || 'medium',
+        chatHistory: sbotHistory.slice(-6)
+      })
+    });
+
+    const el = document.getElementById(thinkId);
+    if (el) el.closest('.sbot-msg').remove();
+
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+
+    const reply = data.reply || data.compliment || "I'd love to help! Tell me your skin concern.";
+    sbotAddAI(reply);
+    sbotHistory.push({ role: 'assistant', content: reply });
+
+    // If products returned, show as cards
+    if (data.products?.length) {
+      data.products.slice(0, 2).forEach(p => sbotAddProductCard(p));
+    }
+
+    if (window.soundOn !== false) speakText(reply.slice(0, 120));
+
+  } catch (e) {
+    const el2 = document.getElementById(thinkId);
+    if (el2) el2.closest('.sbot-msg').remove();
+    sbotAddAI("Connection issue. Check your internet and try again!");
+  }
+}
+
+function sbotAddUser(txt) {
+  const area = document.getElementById('sbotScroll');
+  if (!area) return;
+  const d = document.createElement('div');
+  d.className = 'sbot-msg u';
+  d.innerHTML = `<div class="sbot-bubble">${escS(txt)}</div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function sbotAddAI(txt, id, typing = false) {
+  const area = document.getElementById('sbotScroll');
+  if (!area) return;
+  const d = document.createElement('div');
+  d.className = 'sbot-msg ai';
+  d.innerHTML = `<div class="sbot-av">🛒</div>
+    <div class="sbot-bubble" ${id ? `id="${id}"` : ''}>
+      ${typing ? '<span style="opacity:.5">⋯ thinking</span>' : escS(txt)}
+    </div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function sbotAddProductCard(p) {
+  const area = document.getElementById('sbotScroll');
+  if (!area) return;
+  const url = p.affiliateUrl || `https://www.nykaa.com/search/result/?q=${encodeURIComponent(p.name)}`;
+  const d = document.createElement('div');
+  d.className = 'sbot-msg ai';
+  d.innerHTML = `<div class="sbot-av">🛒</div>
+    <div class="sbot-prod-card" onclick="window.open('${url}','_blank')">
+      <div class="sbot-prod-emoji">${p.emoji || '✨'}</div>
+      <div class="sbot-prod-info">
+        <div class="sbot-prod-name">${escS(p.name)}</div>
+        <div class="sbot-prod-reason">${escS(p.description || 'Perfect for your skin type')}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <div class="sbot-prod-price">₹${p.price || '—'}</div>
+          <button class="sbot-buy-btn">Shop Now →</button>
+        </div>
+      </div>
+    </div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function escS(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── PATCH API to support shopping_bot mode ───────────────────────────────
+// This is handled server-side in stylist.js — see below
+
+// ── ALWAYS-ON GLOW COMPLIMENTS (New, changes every open) ─────────────────
+const GLOW_OPENERS = [
+  "Your skin texture is absolutely flawless today ✨",
+  "That cheekbone structure is genuinely stunning 🌟",
+  "Luminosity at peak — your glow is real today 💫",
+  "The AI detected serious main character energy 🔥",
+  "Perfect symmetry reading — you're giving supermodel today ✨",
+  "Hydration levels visible from the scan — you're GLOWING 💧",
+  "Your natural bone structure is what makeup dreams are made of 🎨",
+  "AI confidence score: 100% that you look incredible right now 💎",
+];
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    // Show random compliment in always-on strip if it exists
+    const strip = document.getElementById('alwaysOnStrip') || document.querySelector('.always-on');
+    if (strip) {
+      const msg = GLOW_OPENERS[Math.floor(Math.random() * GLOW_OPENERS.length)];
+      strip.textContent = msg;
+    }
+  }, 2000);
+});
+
+// ── OVERRIDE awardCoins to also update progress bar ──────────────────────
+const _origAward = window.awardCoins;
+window.awardCoins = function(n) {
+  if (_origAward) _origAward(n);
+  else {
+    if (window.UP) { window.UP.glowCoins = (window.UP.glowCoins || 0) + n; }
+  }
+  updateCoinProgress();
+};
+
+// ── PATCH renderResult to call updateBeautyStats ──────────────────────────
+const _origRenderRes = window.renderResult;
+if (typeof window.renderResult === 'function') {
+  window.renderResult = function(data, fd) {
+    _origRenderRes(data, fd);
+    if (fd) updateBeautyStats(fd);
+    updateCoinProgress();
+  };
+}
+
+console.log('✅ Vibe Mirror AI v6.0 — All features loaded');
