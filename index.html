@@ -21,15 +21,12 @@
 <meta property="og:type" content="website"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
-<!-- MediaPipe Scripts — Fix: Latest CDN links for compatibility -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-
 <style>
 /* ═══════════════════════════════════════
-   DESIGN TOKENS — Luxury "Rose Gold" Look
-   ═══════════════════════════════════════ */
+   DESIGN TOKENS
+═══════════════════════════════════════ */
 :root {
   --gold:        #c8965a;
   --gold2:       #e8b87a;
@@ -52,6 +49,7 @@
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
+/* CRITICAL — lock entire viewport, no scroll whatsoever */
 html {
   height: 100%; height: -webkit-fill-available;
   overflow: hidden; position: fixed; width: 100%;
@@ -62,6 +60,7 @@ body {
   background: var(--bg); font-family: 'Manrope', sans-serif; color: var(--text);
 }
 
+/* ── GLASS UTIL ── */
 .glass {
   background:rgba(0,0,0,0.28);
   backdrop-filter:blur(24px);
@@ -75,6 +74,7 @@ body {
   border:0.5px solid var(--border-gold);
 }
 
+/* ── SHIMMER TEXT ── */
 .shimmer {
   background:linear-gradient(100deg,var(--rose),#fff 45%,var(--rose));
   background-size:200% auto;
@@ -84,16 +84,17 @@ body {
 }
 @keyframes shimmerAnim{to{background-position:200% center}}
 
+/* ── PULSE ── */
 .pulse{animation:pulseAnim 2.8s ease-in-out infinite}
 @keyframes pulseAnim{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.22)}}
 
+/* ── FADE UP ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ═══════════════════════════════════════
    APP SHELL
-   ═══════════════════════════════════════ */
+═══════════════════════════════════════ */
 #app{
   position: fixed;
   top: 0;
@@ -107,6 +108,7 @@ body {
   background: var(--bg);
 }
 
+/* SCREEN ISOLATION — each screen is absolutely layered, only .active shows */
 .screen {
   position: absolute;
   inset: 0;
@@ -124,11 +126,12 @@ body {
   z-index: 2;
 }
 
+/* Flash overlay */
 #flash{position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.06s}
 
 /* ═══════════════════════════════════════
    ONBOARDING
-   ═══════════════════════════════════════ */
+═══════════════════════════════════════ */
 #onboardScreen{
   background:
     radial-gradient(ellipse 65% 45% at 80% 15%, rgba(200,150,90,0.14) 0%,transparent 60%),
@@ -162,10 +165,12 @@ body {
 }
 .ob-sub{font-size:14px;font-weight:300;color:var(--text-m);line-height:1.65;margin-bottom:32px;max-width:320px}
 
+/* Progress dots */
 .ob-dots{display:flex;gap:7px;margin-bottom:24px}
 .ob-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,0.16);transition:all 0.35s}
 .ob-dot.active{width:24px;background:var(--rose)}
 
+/* Steps */
 .ob-step{display:none;flex-direction:column;gap:16px;animation:fadeUp 0.35s ease}
 .ob-step.active{display:flex}
 
@@ -177,6 +182,7 @@ body {
 
 .ob-card{padding:22px;border-radius:16px}
 
+/* Text input */
 .ob-input{
   width:100%;background:transparent;
   border:none;border-bottom:1px solid rgba(229,177,161,0.3);
@@ -187,6 +193,7 @@ body {
 .ob-input::placeholder{color:rgba(255,255,255,0.28);font-style:italic}
 .ob-input:focus{border-color:var(--cyan)}
 
+/* Gender cards */
 .g-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .g-card{
   background:rgba(255,255,255,0.05);border:0.5px solid var(--border);
@@ -197,6 +204,7 @@ body {
 .g-card .ms{font-family:'Material Symbols Outlined';font-size:26px;color:var(--rose);margin-bottom:8px;display:block}
 .g-card .gl{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em}
 
+/* Voice grid */
 .v-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .v-card{
   background:rgba(255,255,255,0.05);border:0.5px solid var(--border);
@@ -208,10 +216,12 @@ body {
 .v-card .vn{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text)}
 .v-card .vs{font-size:11px;color:var(--text-s);margin-top:2px}
 
+/* Melanin */
 .mel-row{display:flex;justify-content:space-between;align-items:center;gap:7px}
 .swatch{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,0.16);cursor:pointer;transition:all 0.2s;flex-shrink:0}
 .swatch.sel{border:2.5px solid var(--rose);box-shadow:0 0 0 3px rgba(229,177,161,0.22)}
 
+/* Skin chips */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
   padding:7px 17px;border-radius:999px;
@@ -221,6 +231,7 @@ body {
 }
 .chip.sel{border-color:var(--rose);color:var(--rose);background:rgba(229,177,161,0.1);font-weight:600}
 
+/* Goal rows */
 .goal-list{display:flex;flex-direction:column;gap:10px}
 .goal-row{
   background:rgba(255,255,255,0.04);border:0.5px solid var(--border);
@@ -236,6 +247,7 @@ body {
 .goal-arrow{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.22)}
 .goal-row.sel .goal-arrow{color:var(--rose);font-variation-settings:'FILL' 1}
 
+/* Privacy badge */
 .priv-badge{
   display:inline-flex;align-items:center;gap:7px;
   padding:7px 15px;border-radius:999px;
@@ -244,6 +256,7 @@ body {
 }
 .priv-badge .ms{font-family:'Material Symbols Outlined';font-size:13px;color:var(--cyan);font-variation-settings:'FILL' 1}
 
+/* CTA Button */
 .ob-cta{
   width:100%;padding:18px;
   background:linear-gradient(135deg,var(--rose),var(--rose2));
@@ -275,12 +288,13 @@ body {
 
 /* ═══════════════════════════════════════
    MIRROR SCREEN
-   ═══════════════════════════════════════ */
+═══════════════════════════════════════ */
 #mirrorScreen{background:#000;position:relative}
-/* FULL SCREEN VIDEO FIX — Fix: autoplay, muted, playsinline for iOS/Android */
+/* FULL SCREEN VIDEO FIX */
 #mirrorScreen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 #mirrorScreen canvas{position:absolute;inset:0;width:100%;height:100%}
 
+/* Top HUD */
 .mirror-top{
   position:absolute;top:0;left:0;right:0;z-index:50;
   padding:16px 16px 0;
@@ -310,6 +324,7 @@ body {
 .icon-btn:hover{background:rgba(229,177,161,0.2);border-color:rgba(229,177,161,0.5)}
 .icon-btn .ms{font-family:'Material Symbols Outlined';font-size:20px;color:var(--rose)}
 
+/* Brand center */
 .mirror-brand{
   position:absolute;top:20px;left:0;right:0;z-index:40;
   text-align:center;pointer-events:none;
@@ -319,6 +334,7 @@ body {
 }
 .mirror-brand small{font-size:9px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.14em;color:var(--text-s);display:block;margin-top:1px}
 
+/* Camera */
 #videoEl{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 #auraCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:18}
 #arCanvas{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;z-index:20}
@@ -332,6 +348,7 @@ body {
 #camPlaceholder p{font-size:13px;color:rgba(255,255,255,0.38);text-align:center;max-width:200px;line-height:1.65}
 #camPlaceholder.hidden{display:none}
 
+/* AR Guide pill */
 .ar-pill{
   position:absolute;top:50%;left:50%;z-index:30;
   transform:translate(-50%,-50%) translateY(-50%);
@@ -344,25 +361,22 @@ body {
 .ar-pill.visible{opacity:1}
 .ar-pill .ms{font-family:'Material Symbols Outlined';font-size:14px;color:var(--cyan);font-variation-settings:'FILL' 1}
 
+/* Occasion input */
 .occ-wrap{position:absolute;top:96px;left:0;right:0;z-index:50;padding:0 16px}
 .occ-input{
   width:100%;background:rgba(0,0,0,0.42);backdrop-filter:blur(20px);
   border:0.5px solid rgba(255,255,255,0.18);border-radius:999px;
-  padding:10px 20px;font-family:'Manrope',sans-serif;font-size:14px;color:#fff;outline:none;transition:border-color 0.3s;
+  padding:10px 20px;font-family:'Manrope',sans-serif;font-size:13px;
+  color:#fff;outline:none;transition:border-color 0.25s;
 }
 .occ-input::placeholder{color:rgba(255,255,255,0.3)}
 .occ-input:focus{border-color:rgba(229,177,161,0.55)}
 
-/* Fix: Results slide up from bottom with animation */
+/* Bottom panel */
 .mirror-panel{
   position:absolute;bottom:0;left:0;right:0;z-index:40;
   background:linear-gradient(to top,rgba(0,0,0,0.97) 50%,rgba(0,0,0,0.78) 78%,transparent 100%);
   padding:0 16px 92px;
-  transform:translateY(0);
-  transition:transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-.mirror-panel.hidden-results {
-  transform:translateY(calc(100% - 100px)); /* Keep only action buttons visible */
 }
 
 .score-row{display:flex;align-items:flex-end;justify-content:space-between;padding:26px 4px 10px}
@@ -378,6 +392,7 @@ body {
 .bar-track{height:3px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--rose),var(--cyan));width:0;transition:width 1.5s cubic-bezier(0.34,1.3,0.64,1)}
 
+/* Compliment card */
 .comp-card{
   background:rgba(0,0,0,0.45);backdrop-filter:blur(40px);
   border:0.5px solid rgba(255,255,255,0.16);border-radius:16px;
@@ -390,6 +405,7 @@ body {
 .comp-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--rose);font-weight:400;line-height:1.35}
 .comp-sub{font-size:12px;color:rgba(255,255,255,0.52);line-height:1.55}
 
+/* Products scroll */
 .prods{display:none;flex-direction:row;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none}
 .prods::-webkit-scrollbar{display:none}
 
@@ -413,6 +429,7 @@ body {
 .pprice{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:6px}
 .pbtn{width:100%;padding:6px;background:var(--rose);border:none;border-radius:7px;color:#3a1a10;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;cursor:pointer}
 
+/* Action row */
 .act-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 4px 0}
 .abtn{
   padding:14px 10px;border-radius:11px;
@@ -442,7 +459,7 @@ body {
 
 /* ═══════════════════════════════════════
    STYLIST SCREEN
-   ═══════════════════════════════════════ */
+═══════════════════════════════════════ */
 #stylistScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
 .sty-header{
   padding:52px 24px 18px;
@@ -455,6 +472,25 @@ body {
 
 .sty-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding-bottom:90px;-webkit-overflow-scrolling:touch}
 
+/* Elite card */
+.elite{
+  margin:16px;padding:22px;border-radius:18px;
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(255,255,255,0.15);position:relative;overflow:hidden;
+}
+.elite-pulse{position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:pulseAnim 2.2s infinite}
+.elite-eye{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.17em;text-transform:uppercase;color:var(--rose);margin-bottom:8px}
+.elite-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:#fff;margin-bottom:6px}
+.elite-sub{font-size:13px;color:var(--text-m);line-height:1.55;margin-bottom:16px}
+.elite-btn{
+  padding:11px 22px;border-radius:999px;
+  background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.28);
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--rose);cursor:pointer;transition:all 0.2s;
+}
+.elite-btn:hover{background:rgba(255,255,255,0.12)}
+
+/* Consultant rows */
 .cons-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .con-row{
   background:rgba(0,0,0,0.24);backdrop-filter:blur(24px);
@@ -470,6 +506,7 @@ body {
 .con-role{font-size:12px;color:var(--text-m)}
 .con-price{background:rgba(255,255,255,0.09);border:0.5px solid rgba(255,255,255,0.18);border-radius:10px;padding:6px 14px;font-size:15px;font-weight:700;color:#fff}
 
+/* Apply card */
 .apply-card{
   margin:0 16px 16px;
   background:rgba(0,0,0,0.2);border:1px dashed rgba(229,177,161,0.32);border-radius:16px;
@@ -485,6 +522,7 @@ body {
 }
 .apply-btn:hover{background:rgba(229,177,161,0.12)}
 
+/* AR status */
 .ar-status{
   display:flex;align-items:center;justify-content:center;gap:10px;
   margin:8px 16px 16px;
@@ -494,6 +532,7 @@ body {
 .ar-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulseAnim 2s infinite}
 .ar-txt{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.16em;color:var(--text-m);text-transform:uppercase}
 
+/* Chat */
 .chat-area{padding:0 16px 14px;display:flex;flex-direction:column;gap:14px}
 .chat-u{
   align-self:flex-end;max-width:80%;
@@ -514,6 +553,7 @@ body {
   padding:14px 16px;font-size:14px;font-weight:300;color:var(--text);line-height:1.6;
 }
 
+/* Chat input — sticky bottom of stylist screen */
 .chat-iw{
   flex-shrink:0;
   padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
@@ -539,7 +579,7 @@ body {
 
 /* ═══════════════════════════════════════
    SHOP SCREEN
-   ═══════════════════════════════════════ */
+═══════════════════════════════════════ */
 #shopScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
 .shop-hdr{padding:52px 24px 16px;background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
 .shop-hdr h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:3px}
@@ -567,8 +607,8 @@ body {
 .sbuy:hover{opacity:0.85}
 
 /* ═══════════════════════════════════════
-   PROFILE SCREEN
-   ═══════════════════════════════════════ */
+   PROFILE SCREEN  (Radiance Revealed)
+═══════════════════════════════════════ */
 #profileScreen{background:var(--bg2);overflow:hidden;display:flex;flex-direction:column}
 
 .prof-topbar{
@@ -590,6 +630,7 @@ body {
 .prof-disp{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;letter-spacing:-0.01em;color:var(--text);line-height:1.1;margin-bottom:12px}
 .prof-sub{font-size:14px;font-weight:300;color:var(--text-m);line-height:1.65;max-width:280px;margin:0 auto 36px}
 
+/* Glow ring */
 .gring-wrap{display:flex;justify-content:center;margin-bottom:44px;position:relative;width:fit-content;margin-left:auto;margin-right:auto}
 .gring{width:220px;height:220px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
 .gring-outer{position:absolute;inset:0;border-radius:50%;border:0.5px solid rgba(255,255,255,0.09)}
@@ -611,140 +652,495 @@ body {
 .corner.tr{top:-6px;right:-6px;border-top:1px solid rgba(229,177,161,0.5);border-right:1px solid rgba(229,177,161,0.5);border-radius:0 6px 0 0}
 .corner.bl{bottom:-6px;left:-6px;border-bottom:1px solid rgba(229,177,161,0.5);border-left:1px solid rgba(229,177,161,0.5);border-radius:0 0 0 6px}
 
+/* Skin wins */
 .sw-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);padding:0 24px 14px}
 .sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px 28px}
-.swcard{background:rgba(0,0,0,0.38);backdrop-filter:blur(24px);border:0.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 16px}
-.swcard .ms{font-family:'Material Symbols Outlined';font-size:24px;margin-bottom:12px;display:block}
+.swcard{background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 14px;display:flex;flex-direction:column;gap:8px}
+.swcard .ms{font-family:'Material Symbols Outlined';font-size:27px;font-variation-settings:'FILL' 1}
 .swcard .ms.rose{color:var(--rose)}
 .swcard .ms.cyan{color:var(--cyan)}
-.swcard h4{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:#fff;margin-bottom:4px}
+.swcard h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--text)}
 .swcard p{font-size:12px;color:var(--text-m);line-height:1.5}
 
-.beauty-stats{padding:0 24px 28px}
-.bs-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--text);margin-bottom:14px}
-.bs-table{width:100%;border-collapse:collapse}
-.bs-table th{text-align:left;font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.14em;color:var(--text-s);text-transform:uppercase;padding-bottom:10px;border-bottom:0.5px solid rgba(255,255,255,0.1)}
-.bs-table td{padding:14px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)}
-.bs-metric-name{font-size:13px;color:var(--text-m)}
-.bs-val{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--rose);font-weight:400}
-.bs-bar-cell{padding-right:12px}
-.bs-mini-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
-.bs-mini-fill{height:100%;background:var(--rose);width:0;transition:width 1s ease}
-.bs-delta{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--cyan)}
+/* Dermal trajectory */
+.traj{margin:0 24px 28px;background:rgba(0,0,0,0.38);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:26px;position:relative;overflow:hidden}
+.traj-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+.traj-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text)}
+.traj-sub{font-size:12px;color:var(--text-m)}
+.traj-pct{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;color:var(--rose);font-weight:600}
+.traj-bars{display:flex;align-items:flex-end;justify-content:space-between;height:112px;gap:8px}
+.tbar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+.tbar{width:100%;border-radius:3px 3px 0 0;background:rgba(255,255,255,0.06);transition:background 0.2s}
+.tbar.cur{background:rgba(229,177,161,0.72);box-shadow:0 0 14px rgba(229,177,161,0.28)}
+.tbar:hover{background:rgba(255,255,255,0.12)}
+.tbar.cur:hover{background:rgba(229,177,161,0.88)}
+.tmonth{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase}
+.tmonth.cur{color:var(--rose)}
+.traj-line{position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(229,177,161,0.14),transparent)}
 
-.traj{margin:0 16px 32px;padding:24px;background:rgba(0,0,0,0.32);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.1);border-radius:18px}
-.traj-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
-.traj-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:#fff}
-.traj-sub{font-size:11px;color:var(--text-s);margin-top:2px}
-.traj-pct{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;color:var(--cyan)}
-.traj-bars{display:flex;align-items:flex-end;justify-content:space-between;height:100px;gap:8px;position:relative;z-index:2}
-.tbar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
-.tbar{width:100%;background:rgba(255,255,255,0.08);border-radius:4px 4px 0 0;transition:height 1s ease}
-.tbar.cur{background:linear-gradient(to top,var(--rose),var(--rose2))}
-.tmonth{font-family:'Space Grotesk',sans-serif;font-size:9px;color:var(--text-s);text-transform:uppercase}
-.tmonth.cur{color:var(--rose);font-weight:700}
+/* IG Share */
+.ig-wrap{padding:0 24px 32px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ig-btn{
+  width:100%;max-width:340px;padding:18px;border:none;border-radius:999px;cursor:pointer;
+  background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.45);transition:transform 0.2s;
+}
+.ig-btn:hover{transform:scale(1.02)}
+.ig-btn:active{transform:scale(0.97)}
+.ig-btn span{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:0.2em;font-weight:700;color:#fff;text-transform:uppercase}
+.ig-credit{font-size:11px;color:rgba(255,255,255,0.3)}
 
-.ig-wrap{padding:0 24px 40px;text-align:center}
-.ig-btn{width:100%;padding:16px;border-radius:999px;background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);border:none;display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.1em;cursor:pointer;box-shadow:0 8px 24px rgba(220,39,67,0.25)}
-.ig-credit{font-size:11px;color:var(--text-s);margin-top:14px}
-
-.prof-settings{padding:0 24px 40px}
-.prof-sec-lbl{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.2em;color:var(--text-s);text-transform:uppercase;margin-bottom:14px}
-.prof-row{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);cursor:pointer}
-.prof-row-l{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--text-m)}
-.prof-row .ms{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.2)}
+/* Settings rows */
+.prof-settings{padding:0 24px 100px}
+.prof-sec-lbl{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin:0 0 10px}
+.prof-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:background 0.2s;
+}
+.prof-row:hover{background:rgba(255,255,255,0.07)}
+.prof-row-l{display:flex;align-items:center;gap:12px}
+.prof-row-l span:first-child{font-size:1.1rem}
+.prof-row-l span:last-child{font-size:14px;color:var(--text)}
+.prof-row .ms{font-family:'Material Symbols Outlined';font-size:16px;color:rgba(255,255,255,0.22)}
 
 /* ═══════════════════════════════════════
-   NAV BAR
-   ═══════════════════════════════════════ */
-.navbar{
-  position:absolute;bottom:0;left:0;right:0;z-index:100;
-  height:84px;padding:0 20px calc(8px + env(safe-area-inset-bottom,0px));
-  background:rgba(10,10,10,0.85);backdrop-filter:blur(30px);
-  border-top:0.5px solid rgba(255,255,255,0.1);
-  display:flex;justify-content:space-between;align-items:center;
-}
-.ntab{display:flex;flex-direction:column;align-items:center;gap:5px;color:rgba(255,255,255,0.3);cursor:pointer;transition:all 0.3s;flex:1}
-.ntab.active{color:var(--rose)}
-.ntab .ms{font-family:'Material Symbols Outlined';font-size:24px;transition:transform 0.3s}
-.ntab.active .ms{transform:translateY(-2px);font-variation-settings:'FILL' 1}
-.ntab-lbl{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.05em;font-weight:500}
+   WARDROBE SCREEN (My Vanity)
+═══════════════════════════════════════ */
+#wardrobeScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.ward-hdr{padding:52px 24px 16px;background:linear-gradient(160deg,rgba(26,16,8,1) 0%,var(--bg) 100%);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
+.ward-hdr h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:3px}
+.ward-hdr p{font-size:13px;color:var(--text-m)}
+.ward-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding:16px 24px 100px;-webkit-overflow-scrolling:touch}
 
-#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);z-index:1000;background:rgba(229,177,161,0.95);color:#3a1a10;padding:12px 24px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all 0.35s cubic-bezier(0.23,1,0.32,1);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+/* Add product form */
+.ward-add{
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(30px);
+  border:0.5px solid rgba(229,177,161,0.32);border-radius:18px;padding:20px;margin-bottom:20px;
+}
+.ward-add-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text);margin-bottom:14px}
+.ward-inp{
+  width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);
+  border-radius:10px;padding:11px 14px;font-family:'Manrope',sans-serif;font-size:13px;
+  color:#fff;outline:none;transition:border-color 0.25s;margin-bottom:10px;
+}
+.ward-inp::placeholder{color:rgba(255,255,255,0.3)}
+.ward-inp:focus{border-color:rgba(229,177,161,0.55)}
+.ward-cat-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.wcat{
+  padding:6px 14px;border-radius:999px;border:0.5px solid rgba(255,255,255,0.16);
+  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.2s;
+}
+.wcat.sel{border-color:var(--rose);color:var(--rose);background:rgba(229,177,161,0.1)}
+.ward-add-btn{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--rose),var(--rose2));
+  border:none;border-radius:10px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:0.14em;font-weight:700;
+  color:#3a1a10;cursor:pointer;transition:opacity 0.2s;text-transform:uppercase;
+}
+.ward-add-btn:hover{opacity:0.88}
+
+/* Empty state */
+.ward-empty{text-align:center;padding:40px 20px;color:rgba(255,255,255,0.28)}
+.ward-empty .ms{font-family:'Material Symbols Outlined';font-size:48px;margin-bottom:12px;display:block}
+.ward-empty p{font-size:13px;line-height:1.65}
+
+/* Wardrobe items */
+.ward-items{display:flex;flex-direction:column;gap:10px}
+.ward-item{
+  background:rgba(0,0,0,0.28);backdrop-filter:blur(24px);
+  border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+}
+.wi-emoji{font-size:1.8rem;width:44px;height:44px;background:rgba(255,255,255,0.04);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wi-info{flex:1}
+.wi-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.wi-cat{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--rose)}
+.wi-del{background:transparent;border:none;color:rgba(255,255,255,0.25);font-size:18px;cursor:pointer;transition:color 0.2s;padding:4px}
+.wi-del:hover{color:var(--rose)}
+
+.ward-section-lbl{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:18px 0 10px}
+
+/* ═══════════════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════════════ */
+#bottomNav{
+  position:absolute;bottom:0;left:0;right:0;z-index:200;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border-top:0.5px solid rgba(255,255,255,0.16);
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.6);
+}
+.ntab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;transition:all 0.2s;color:rgba(255,255,255,0.38)}
+.ntab:hover{color:rgba(255,255,255,0.65)}
+.ntab.active{color:var(--rose);filter:drop-shadow(0 0 8px rgba(229,177,161,0.55))}
+.ntab .ms{font-family:'Material Symbols Outlined';font-size:22px;transition:font-variation-settings 0.2s}
+.ntab.active .ms{font-variation-settings:'FILL' 1}
+.ntab-lbl{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(20px);
+  border:0.5px solid rgba(255,255,255,0.18);border-radius:999px;
+  padding:9px 22px;font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:0.06em;
+  color:#fff;white-space:nowrap;opacity:0;transition:opacity 0.3s,transform 0.3s;
+  z-index:500;pointer-events:none;
+}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* BG ambient */
+.bg-ambient{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-ambient::before{content:'';position:absolute;top:-10%;right:-10%;width:50%;height:50%;background:rgba(229,177,161,0.08);border-radius:50%;filter:blur(120px)}
+.bg-ambient::after{content:'';position:absolute;bottom:-10%;left:-10%;width:50%;height:50%;background:rgba(99,247,255,0.04);border-radius:50%;filter:blur(120px)}
+
+/* ═══ TWO-MODE CAMERA TOGGLE ═══ */
+.mode-toggle{
+  position:absolute;top:108px;left:50%;transform:translateX(-50%);
+  z-index:50;display:flex;
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(24px);
+  border:.5px solid rgba(255,255,255,0.18);border-radius:30px;overflow:hidden;
+}
+.mode-btn{
+  padding:7px 20px;font-family:'Space Grotesk',sans-serif;
+  font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:none;
+  transition:all 0.25s;white-space:nowrap;
+}
+.mode-btn.active{
+  background:var(--rose);color:#30130a;font-weight:700;
+  border-radius:28px;box-shadow:0 0 16px rgba(229,177,161,0.4);
+}
+
+/* ═══ GLOW CANVAS FILTER ═══ */
+#glowFilter{
+  position:absolute;inset:0;z-index:19;pointer-events:none;
+  background:radial-gradient(ellipse 70% 80% at 50% 38%,rgba(255,230,210,0.09) 0%,transparent 65%);
+  mix-blend-mode:screen;transition:opacity 0.5s;
+}
+
+/* ═══ MAKEUP STEP GUIDE ═══ */
+.makeup-step-guide{
+  position:absolute;top:120px;left:16px;right:16px;z-index:45;
+  background:rgba(0,0,0,0.52);backdrop-filter:blur(16px);
+  border:.5px solid rgba(229,177,161,0.35);border-radius:14px;
+  padding:12px 16px;display:none;
+}
+.makeup-step-guide.show{display:block}
+.msg-label{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
+.msg-steps{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.msg-steps::-webkit-scrollbar{display:none}
+.msg-step{
+  flex-shrink:0;padding:7px 14px;border-radius:20px;border:.5px solid rgba(255,255,255,0.15);
+  font-size:11px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.msg-step.active{background:var(--rose);color:#30130a;border-color:var(--rose);font-weight:700}
+.msg-instruction{font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;margin-top:8px;min-height:18px}
+
+/* ═══ BEAUTY STATS TABLE ═══ */
+.beauty-stats{padding:0 24px 24px}
+.bs-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:14px}
+.bs-table{
+  width:100%;border-collapse:collapse;
+  background:rgba(255,255,255,0.04);
+  border:.5px solid rgba(255,255,255,0.12);border-radius:12px;overflow:hidden;
+}
+.bs-table th{
+  font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.14em;
+  text-transform:uppercase;color:rgba(255,255,255,0.4);padding:10px 12px;
+  text-align:left;border-bottom:.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.02);
+}
+.bs-table td{padding:11px 12px;font-size:12px;color:var(--text-m);border-bottom:.5px solid rgba(255,255,255,0.05)}
+.bs-table tr:last-child td{border-bottom:none}
+.bs-bar-cell{width:90px}
+.bs-mini-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;display:inline-block;width:100%}
+.bs-mini-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--rose),var(--gold2));transition:width 1.2s ease}
+.bs-metric-name{font-weight:600;color:var(--text)}
+.bs-val{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--rose);font-weight:400;white-space:nowrap}
+.bs-delta{font-size:10px;color:#6dbf9e;font-weight:600}
+
+/* ═══ COIN PROGRESS BAR ═══ */
+.coin-progress{
+  margin:0 24px 20px;padding:16px 18px;
+  background:rgba(0,0,0,0.3);backdrop-filter:blur(20px);
+  border:.5px solid rgba(200,150,90,0.3);border-radius:14px;
+}
+.cp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cp-title{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold2)}
+.cp-val{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);font-weight:300}
+.cp-track{height:6px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden;margin-bottom:8px}
+.cp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2),#f5d9a8);border-radius:6px;transition:width 0.8s ease;max-width:100%}
+.cp-sub{font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5}
+.cp-sub b{color:var(--gold2)}
+
+/* ═══ UV/POLLUTION ALERT ═══ */
+.uv-alert{
+  margin:0 24px 16px;padding:13px 16px;
+  background:rgba(255,160,60,0.12);backdrop-filter:blur(16px);
+  border:.5px solid rgba(255,160,60,0.35);border-radius:12px;
+  display:none;align-items:center;gap:10px;
+}
+.uv-alert.show{display:flex}
+.uv-icon{font-size:1.3rem;flex-shrink:0}
+.uv-text{font-size:12px;color:rgba(255,220,160,0.9);line-height:1.5}
+.uv-text b{color:#ffd080}
+
+/* ═══ SHOPPING BOT TAB ═══ */
+#shopBotScreen{background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.sbot-header{
+  padding:52px 24px 16px;
+  background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(99,247,255,0.1) 0%,transparent 60%);
+}
+.sbot-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text);margin-bottom:4px}
+.sbot-sub{font-size:12px;color:rgba(99,247,255,0.7);font-family:'Space Grotesk',sans-serif;letter-spacing:0.08em}
+.sbot-scroll{flex:1;overflow-y:auto;padding:12px 16px 120px}
+.sbot-scroll::-webkit-scrollbar{display:none}
+.sbot-msg{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;animation:fadeUp 0.3s ease}
+.sbot-msg.u{flex-direction:row-reverse}
+.sbot-bubble{
+  max-width:82%;padding:12px 15px;border-radius:18px;
+  font-size:13px;line-height:1.55;
+}
+.sbot-msg.ai .sbot-bubble{
+  background:rgba(99,247,255,0.07);border:.5px solid rgba(99,247,255,0.2);
+  color:var(--text);border-bottom-left-radius:4px;
+}
+.sbot-msg.u  .sbot-bubble{background:var(--rose);color:#30130a;font-weight:500;border-bottom-right-radius:4px}
+.sbot-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(99,247,255,0.3),rgba(99,247,255,0.1));
+  border:.5px solid rgba(99,247,255,0.35);
+  display:flex;align-items:center;justify-content:center;font-size:13px}
+.sbot-prod-card{
+  background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.12);
+  border-radius:14px;padding:14px;margin-top:8px;
+  display:flex;gap:12px;align-items:center;cursor:pointer;transition:all 0.2s;
+}
+.sbot-prod-card:active{transform:scale(0.98)}
+.sbot-prod-emoji{font-size:2rem;flex-shrink:0}
+.sbot-prod-info{flex:1}
+.sbot-prod-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.sbot-prod-reason{font-size:11px;color:var(--text-m);line-height:1.4;margin-bottom:6px}
+.sbot-prod-price{font-size:13px;font-weight:700;color:var(--gold2)}
+.sbot-buy-btn{
+  padding:6px 14px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:20px;font-family:'Space Grotesk',sans-serif;
+  font-size:10px;letter-spacing:0.08em;color:#1a1410;font-weight:700;cursor:pointer;
+}
+.sbot-quick-row{display:flex;gap:8px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none}
+.sbot-quick-row::-webkit-scrollbar{display:none}
+.sbot-qchip{
+  flex-shrink:0;padding:7px 14px;background:rgba(99,247,255,0.07);
+  border:.5px solid rgba(99,247,255,0.25);border-radius:20px;
+  font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.08em;
+  color:rgba(99,247,255,0.8);cursor:pointer;white-space:nowrap;transition:all 0.2s;
+}
+.sbot-qchip:active{background:rgba(99,247,255,0.15)}
+.sbot-input-row{
+  position:absolute;bottom:0;left:0;right:0;z-index:50;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(30px);
+  border-top:.5px solid rgba(99,247,255,0.15);
+  display:flex;gap:10px;align-items:center;
+}
+.sbot-inp{
+  flex:1;background:rgba(99,247,255,0.06);border:.5px solid rgba(99,247,255,0.2);
+  border-radius:24px;padding:11px 18px;font-family:'Manrope',sans-serif;
+  font-size:13px;color:var(--text);outline:none;
+}
+.sbot-inp::placeholder{color:rgba(255,255,255,0.28)}
+.sbot-send{
+  width:42px;height:42px;border-radius:50%;flex-shrink:0;
+  background:rgba(99,247,255,0.2);border:.5px solid rgba(99,247,255,0.4);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-family:'Material Symbols Outlined';font-size:18px;color:var(--cyan);
+  transition:transform 0.15s;
+}
+.sbot-send:active{transform:scale(0.9)}
 </style>
+<script>
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install toast after 4s
+  setTimeout(() => {
+    if (deferredPrompt) {
+      const t = document.getElementById('toast');
+      if (t) {
+        t.innerHTML = '📲 Add to Home Screen for app experience';
+        t.classList.add('show');
+        t.style.cursor = 'pointer';
+        t.onclick = () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(() => { deferredPrompt = null; t.classList.remove('show'); });
+        };
+        setTimeout(() => t.classList.remove('show'), 5000);
+      }
+    }
+  }, 4000);
+});
+</script>
 </head>
 <body>
+<div id="app">
+<div class="bg-ambient"></div>
 <div id="flash"></div>
 
-<div id="app">
-<!-- ONBOARDING -->
+<!-- ══════════════════════════════════════
+     ONBOARDING
+══════════════════════════════════════ -->
 <div id="onboardScreen" class="screen active">
-  <div class="ob-header">
-    <div class="ob-brand">VIBE MIRROR AI<span>LUXURY BEAUTY INTELLIGENCE</span></div>
-    <div class="ob-dots"><div class="ob-dot active" id="d0"></div><div class="ob-dot" id="d1"></div><div class="ob-dot" id="d2"></div><div class="ob-dot" id="d3"></div></div>
+  <div class="ob-header glass">
+    <div>
+      <div class="ob-brand">VIBE MIRROR AI<span>LUXURY BEAUTY INTELLIGENCE</span></div>
+    </div>
+    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';color:var(--rose);font-size:22px">auto_awesome</span>
   </div>
   <div class="ob-body">
+    <h1 class="ob-display shimmer">Begin Your<br/>Evolution</h1>
+    <p class="ob-sub">Welcome to Vibe Mirror AI. Let us calibrate your hyper-personalised beauty ritual.</p>
+
+    <div class="ob-dots">
+      <div class="ob-dot active" id="d0"></div>
+      <div class="ob-dot" id="d1"></div>
+      <div class="ob-dot" id="d2"></div>
+      <div class="ob-dot" id="d3"></div>
+    </div>
+
+    <!-- Step 0 : Name + Gender -->
     <div class="ob-step active" id="s0">
-      <div class="ob-display">Your Aesthetic<br/>Evolution Begins.</div>
-      <div class="ob-sub">A clinical distillation of your journey towards luminous perfection. Personalized AI beauty at your fingertips.</div>
-      <button class="ob-cta" onclick="goStep(1)">Begin Ritual</button>
+      <div class="glass ob-card">
+        <div class="ob-lbl">Consultation Profile</div>
+        <input class="ob-input" id="nameInput" type="text" placeholder="Your full name…" maxlength="30" autocomplete="off"
+               oninput="document.getElementById('nameUnderline').style.width=this.value?'100%':'0'"/>
+        <div id="nameUnderline" style="height:1px;width:0;background:var(--cyan);transition:width 0.6s;margin-top:2px"></div>
+        <div class="g-grid">
+          <div class="g-card sel" id="gF" onclick="selGender('female')">
+            <span class="material-symbols-outlined ms">female</span>
+            <span class="gl">FEMALE</span>
+          </div>
+          <div class="g-card" id="gM" onclick="selGender('male')">
+            <span class="material-symbols-outlined ms">male</span>
+            <span class="gl">MALE</span>
+          </div>
+        </div>
+      </div>
+      <button class="ob-next" onclick="goStep(1)">Continue →</button>
+      <div class="ob-skip" onclick="skipOB()">Skip for now</div>
     </div>
+
+    <!-- Step 1 : Voice -->
     <div class="ob-step" id="s1">
-      <div class="ob-lbl">Identity</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">How shall we address you?</div>
-      <input class="ob-input" id="userName" type="text" placeholder="Enter your name…"/>
-      <div class="g-grid">
-        <div class="g-card" id="gF" onclick="selGender('female')"><span class="material-symbols-outlined ms">female</span><div class="gl">FEMALE</div></div>
-        <div class="g-card" id="gM" onclick="selGender('male')"><span class="material-symbols-outlined ms">male</span><div class="gl">MALE</div></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Choose Your Guide's Voice</div>
+      <div class="v-grid">
+        <div class="v-card sel" id="vc0" onclick="selVoice('sweet')">
+          <span class="material-symbols-outlined ms">volume_up</span>
+          <div class="vn">Sweet</div><div class="vs">Gentle &amp; Airy</div>
+        </div>
+        <div class="v-card" id="vc1" onclick="selVoice('pro')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">verified</span>
+          <div class="vn">Professional</div><div class="vs">Direct &amp; Precise</div>
+        </div>
+        <div class="v-card" id="vc2" onclick="selVoice('deep')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">graphic_eq</span>
+          <div class="vn">Deep</div><div class="vs">Resonant &amp; Rich</div>
+        </div>
+        <div class="v-card" id="vc3" onclick="selVoice('calm')">
+          <span class="material-symbols-outlined ms" style="color:var(--cyan)">spa</span>
+          <div class="vn">Calm</div><div class="vs">Zen &amp; Soothing</div>
+        </div>
       </div>
-      <button class="ob-cta" style="margin-top:20px" onclick="goStep(2)">Continue</button>
+      <button class="ob-next" onclick="goStep(2)">Continue →</button>
     </div>
+
+    <!-- Step 2 : Biological Calibration -->
     <div class="ob-step" id="s2">
-      <div class="ob-lbl">Skin Profile</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Select your skin tone</div>
-      <div class="mel-row">
-        <div class="swatch" onclick="selSwatch(this)" style="background:#f9ebe0"></div>
-        <div class="swatch" onclick="selSwatch(this)" style="background:#f3d6c1"></div>
-        <div class="swatch sel" onclick="selSwatch(this)" style="background:#e6ba98"></div>
-        <div class="swatch" onclick="selSwatch(this)" style="background:#cb946d"></div>
-        <div class="swatch" onclick="selSwatch(this)" style="background:#a36d46"></div>
-        <div class="swatch" onclick="selSwatch(this)" style="background:#6d462e"></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Biological Calibration</div>
+      <div class="glass ob-card" style="display:flex;flex-direction:column;gap:18px">
+        <div>
+          <div class="ob-lbl" style="margin-bottom:14px">Melanin Scale</div>
+          <div class="mel-row">
+            <div class="swatch" style="background:#F9E4D4" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#E8C2A0" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#D19D7A" onclick="selSwatch(this)"></div>
+            <div class="swatch sel" style="background:#A5673F" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#71492E" onclick="selSwatch(this)"></div>
+            <div class="swatch" style="background:#3C2219" onclick="selSwatch(this)"></div>
+          </div>
+        </div>
+        <div>
+          <div class="ob-lbl" style="margin-bottom:10px">Skin Composition</div>
+          <div class="chips">
+            <div class="chip sel" onclick="togChip(this)">Combination</div>
+            <div class="chip" onclick="togChip(this)">Oily</div>
+            <div class="chip" onclick="togChip(this)">Dry</div>
+            <div class="chip" onclick="togChip(this)">Sensitive</div>
+          </div>
+        </div>
       </div>
-      <div style="margin-top:16px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">Skin concerns?</div>
-      <div class="chips">
-        <div class="chip" onclick="togChip(this)">Dryness</div>
-        <div class="chip sel" onclick="togChip(this)">Oiliness</div>
-        <div class="chip" onclick="togChip(this)">Acne</div>
-        <div class="chip" onclick="togChip(this)">Sensitivity</div>
-        <div class="chip" onclick="togChip(this)">Aging</div>
-      </div>
-      <button class="ob-cta" style="margin-top:20px" onclick="goStep(3)">Analyze Profile</button>
+      <button class="ob-next" onclick="goStep(3)">Continue →</button>
     </div>
+
+    <!-- Step 3 : Goal + CTA -->
     <div class="ob-step" id="s3">
       <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px">The Prime Objective</div>
       <div class="goal-list">
         <div class="goal-row" onclick="selGoal(this,'Anti-aging')">
           <div class="goal-emoji">🌿</div>
-          <div class="goal-info"><div class="goal-name">Anti-aging</div><div class="goal-sub">Cellular regeneration & lift</div></div>
+          <div class="goal-info"><div class="goal-name">Anti-aging</div><div class="goal-sub">Cellular regeneration &amp; lift</div></div>
           <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
         </div>
         <div class="goal-row sel" onclick="selGoal(this,'Radiant Glow')">
           <div class="goal-emoji">✨</div>
-          <div class="goal-info"><div class="goal-name">Radiant Glow</div><div class="goal-sub">Illuminated vitality & tone</div></div>
+          <div class="goal-info"><div class="goal-name">Radiant Glow</div><div class="goal-sub">Illuminated vitality &amp; tone</div></div>
           <span class="material-symbols-outlined goal-arrow" style="font-variation-settings:'FILL' 1;color:var(--rose)">check_circle</span>
+        </div>
+        <div class="goal-row" onclick="selGoal(this,'Acne-free')">
+          <div class="goal-emoji">💧</div>
+          <div class="goal-info"><div class="goal-name">Acne-free</div><div class="goal-sub">Microbiome balance &amp; clarity</div></div>
+          <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
+        </div>
+        <div class="goal-row" onclick="selGoal(this,'Party Ready')">
+          <div class="goal-emoji">💃</div>
+          <div class="goal-info"><div class="goal-name">Party Ready</div><div class="goal-sub">Bold, unforgettable looks</div></div>
+          <span class="material-symbols-outlined goal-arrow">arrow_forward_ios</span>
         </div>
       </div>
       <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:14px">
-        <div class="priv-badge"><span class="material-symbols-outlined ms">shield</span>Face data stays on device</div>
+        <div class="priv-badge">
+          <span class="material-symbols-outlined ms">shield</span>
+          Face data stays on device
+        </div>
         <button class="ob-cta" onclick="finishOB()">Enter the Mirror</button>
+        <p style="font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.22);text-transform:uppercase">By entering, you agree to our private ritual protocol</p>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- MIRROR SCREEN -->
+  </div><!-- ob-body -->
+</div><!-- onboardScreen -->
+
+<!-- ══════════════════════════════════════
+     MIRROR SCREEN
+══════════════════════════════════════ -->
 <div id="mirrorScreen" class="screen">
+
+  <!-- Top HUD -->
   <div class="mirror-top">
     <div class="gamebar">
       <div class="gc-col"><span class="gc-lbl">Daily Streak</span><span class="gc-val gc-streak" id="streakVal">1</span></div>
@@ -752,141 +1148,448 @@ body {
       <div class="gc-col"><span class="gc-lbl">Glow Coins</span><span class="gc-val gc-coins" id="coinsVal">0</span></div>
     </div>
     <div class="top-btns">
-      <div class="icon-btn" onclick="triggerFlash()"><span class="material-symbols-outlined ms">wb_sunny</span></div>
+      <div class="icon-btn" id="soundBtn" onclick="toggleSound()" title="Voice toggle">
+        <span class="material-symbols-outlined ms">volume_up</span>
+      </div>
+      <div class="icon-btn" onclick="triggerFlash()" title="Studio flash">
+        <span class="material-symbols-outlined ms">wb_sunny</span>
+      </div>
     </div>
   </div>
 
+
+  <!-- Glow filter overlay -->
+  <div id="glowFilter"></div>
+
+  <!-- Two-Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeGlow" onclick="setMode('glow')">✦ Glow</button>
+    <button class="mode-btn" id="modeGuide" onclick="setMode('guide')">💄 Guide</button>
+  </div>
+
+  <!-- Makeup Step Guide (Guide mode only) -->
+  <div class="makeup-step-guide" id="makeupStepGuide">
+    <div class="msg-label">Step-by-Step Coach</div>
+    <div class="msg-steps" id="makeupSteps">
+      <div class="msg-step active" onclick="selectMakeupStep(this,'eyes')">👁 Eyes</div>
+      <div class="msg-step" onclick="selectMakeupStep(this,'brows')">✏ Brows</div>
+      <div class="msg-step" onclick="selectMakeupStep(this,'contour')">🏔 Contour</div>
+      <div class="msg-step" onclick="selectMakeupStep(this,'blush')">🌸 Blush</div>
+      <div class="msg-step" onclick="selectMakeupStep(this,'lips')">💋 Lips</div>
+    </div>
+    <div class="msg-instruction" id="makeupInstruction">Apply a thin line along your upper lash line, extending slightly at the outer corner.</div>
+  </div>
+  <!-- Brand watermark -->
   <div class="mirror-brand">VIBE MIRROR AI<small>LUXURY BEAUTY INTELLIGENCE</small></div>
 
-  <!-- Camera layers — Fix: autoplay muted playsinline for mobile compatibility -->
+  <!-- Camera layers -->
   <video id="videoEl" playsinline muted autoplay></video>
   <canvas id="auraCanvas"></canvas>
   <canvas id="arCanvas"></canvas>
 
+  <!-- AR guide pill -->
+  <div class="ar-pill" id="arGuidePill">
+    <span class="material-symbols-outlined ms">auto_awesome</span>
+    Real-Time AI Guide
+  </div>
+
+  <!-- Camera placeholder -->
   <div id="camPlaceholder">
-    <span class="material-symbols-outlined">photo_camera</span>
+    <span class="material-symbols-outlined" style="font-family:'Material Symbols Outlined';font-size:56px;color:rgba(255,255,255,0.18)">photo_camera</span>
     <p>Allow camera access for your AI Beauty Mirror</p>
   </div>
 
+  <!-- Occasion input -->
   <div class="occ-wrap">
-    <input class="occ-input" id="occasionInput" type="text" placeholder="Occasion (e.g. Wedding, Party)…"/>
+    <input class="occ-input" id="occasionInput" type="text" placeholder="Occasion or city context (e.g. Bhopal wedding)…"/>
   </div>
 
-  <!-- Fix: mirror-panel starts with hidden-results class for slide-up animation -->
-  <div class="mirror-panel hidden-results" id="mirrorPanel">
+  <!-- Bottom panel -->
+  <div class="mirror-panel">
     <div class="score-row">
-      <div><div class="score-num" id="vibeNum">—</div><div class="score-lbl">Vibe Score</div></div>
+      <div>
+        <div class="score-num" id="vibeNum">—</div>
+        <div class="score-lbl">Vibe Score</div>
+      </div>
       <div class="sym-chip" id="symChip">◈ —%</div>
     </div>
-    <div class="bar-wrap"><div class="bar-track"><div class="bar-fill" id="vibeBar"></div></div></div>
+    <div class="bar-wrap">
+      <div class="bar-track"><div class="bar-fill" id="vibeBar"></div></div>
+    </div>
     <div class="comp-card">
-      <div class="comp-head"><span class="material-symbols-outlined ms pulse">auto_awesome</span><span class="comp-title" id="compTitle">"Ready to scan"</span></div>
-      <div class="comp-sub" id="compSub">Point face at camera & tap Scan Skin.</div>
+      <div class="comp-head">
+        <span class="material-symbols-outlined ms pulse" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+        <span class="comp-title" id="compTitle">"Your skin is glowing today!"</span>
+      </div>
+      <div class="comp-sub" id="compSub">AI Analysis Reflection · Point face at camera &amp; tap Scan Skin.</div>
     </div>
     <div class="prods" id="prodsRow"></div>
     <div class="act-row">
-      <button class="abtn abtn-scan" id="scanBtn" onclick="doScan()"><span class="material-symbols-outlined ms">center_focus_weak</span>Scan Skin</button>
-      <button class="abtn abtn-ar" onclick="showToast('AR Feature — Coming soon!')"><span class="material-symbols-outlined ms">face_retouching_natural</span>Apply Look</button>
+      <button class="abtn abtn-scan" id="scanBtn" disabled onclick="doScan()">
+        <span class="material-symbols-outlined ms">center_focus_weak</span>Scan Skin
+      </button>
+      <button class="abtn abtn-ar" id="modeActionBtn" onclick="modeAction()">
+        <span class="material-symbols-outlined ms">face_retouching_natural</span><span id="modeActionLbl">Apply AR Look</span>
+      </button>
     </div>
   </div>
-</div>
 
-<!-- STYLIST SCREEN -->
+</div><!-- mirrorScreen -->
+
+<!-- ══════════════════════════════════════
+     STYLIST SCREEN
+══════════════════════════════════════ -->
 <div id="stylistScreen" class="screen">
   <div class="sty-header">
     <div class="sty-brand">VIBE MIRROR AI</div>
     <div class="sty-title">Your Stylist</div>
-    <div class="sty-sub">AI consultations & beauty tips</div>
+    <div class="sty-sub">Pro consultations &amp; hyper-local tips</div>
   </div>
-  <div class="sty-scroll">
+  <div class="sty-scroll" id="styScroll">
+
+    <!-- Consultant cards -->
     <div class="cons-list" style="margin-top:16px;">
-      <div class="con-row" onclick="showToast('Chat — Simplified for now')">
+      <div class="con-row" onclick="startChat('ai')">
         <div class="con-av">🤖<div class="con-dot"></div></div>
-        <div class="con-info"><div class="con-name">Vibe Architect AI</div><div class="con-status">● ALWAYS AVAILABLE</div></div>
+        <div class="con-info">
+          <div class="con-name">Vibe Architect AI</div>
+          <div class="con-status">● ALWAYS AVAILABLE</div>
+          <div class="con-role">Your 24/7 AI Skin Expert</div>
+        </div>
+        <div class="con-price">$1</div>
+      </div>
+      <div class="con-row" onclick="startChat('sarah')">
+        <div class="con-av">💁<div class="con-dot"></div></div>
+        <div class="con-info">
+          <div class="con-name">Sarah Jenkins</div>
+          <div class="con-status">● ONLINE</div>
+          <div class="con-role">Senior Stylist · London</div>
+        </div>
         <div class="con-price">$1</div>
       </div>
     </div>
-    <div class="chat-area">
+
+    <!-- AR status -->
+    <div class="ar-status">
+      <div class="ar-dot"></div>
+      <span class="ar-txt" id="arStatusTxt">Analyzing Climate Vectors: Bhopal, IN</span>
+    </div>
+
+    <!-- Live chat messages -->
+    <div class="chat-area" id="chatArea">
       <div class="chat-ai">
-        <div class="chat-ai-av"><span class="material-symbols-outlined ms">auto_awesome</span></div>
-        <div class="chat-ai-b">Namaste! I'm Vibe AI. How can I help with your routine today? ✨</div>
+        <div class="chat-ai-av"><span class="material-symbols-outlined ms" style="font-size:14px">auto_awesome</span></div>
+        <div class="chat-ai-b">Namaste! I'm Vibe AI, your personal beauty stylist. Ask me anything about skincare, makeup, or beauty tips tailored for your city and skin type. ✨</div>
       </div>
     </div>
-    <!-- Fix: Simplified navigation/placeholders for non-functional items -->
+
+    <!-- Apply card -->
     <div class="apply-card">
       <h3>Professional Consultant?</h3>
-      <p>Join our elite stylist network. Apply now to grow your career.</p>
-      <button class="apply-btn" onclick="showToast('Apply — Coming soon!')">APPLY FOR $1</button>
+      <p>Duniya bhar ke clients ko advice dein. Apply karein aur apna career grow karein.</p>
+      <button class="apply-btn" onclick="showToast('Apply for $1 — Coming soon!')">APPLY FOR $1</button>
+    </div>
+
+  </div><!-- sty-scroll -->
+
+  <!-- Chat input — fixed at bottom of this screen -->
+  <div class="chat-iw" id="chatInputWrap">
+    <div class="chat-ir">
+      <input type="text" id="chatInput" placeholder="Ask Vibe AI about your routine…" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <span class="material-symbols-outlined ms" onclick="startVoiceInput()">mic</span>
+      <div class="chat-send" onclick="sendChat()">
+        <span class="material-symbols-outlined ms">arrow_upward</span>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- SHOP SCREEN -->
+</div><!-- stylistScreen -->
+
+<!-- ══════════════════════════════════════
+     SHOP SCREEN
+══════════════════════════════════════ -->
 <div id="shopScreen" class="screen">
-  <div class="shop-hdr"><h2>Shop the Look</h2><p>Curated for your skin</p></div>
+  <div class="shop-hdr">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h2>Shop the Look</h2><p>Curated for your skin · Best Indian prices</p></div>
+      <button onclick="switchTab('shopBotScreen',document.getElementById('nt-shop'));sbotInit()" style="flex-shrink:0;margin-top:4px;padding:6px 12px;background:rgba(99,247,255,0.12);border:0.5px solid rgba(99,247,255,0.35);border-radius:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.08em;color:rgba(99,247,255,0.9);cursor:pointer;white-space:nowrap">🤖 AI Bot</button>
+    </div>
+  </div>
   <div class="shop-scroll">
-    <div class="filter-row">
-      <div class="fchip active">All</div><div class="fchip">Lips</div><div class="fchip">Eyes</div><div class="fchip">Face</div>
+    <div class="filter-row" id="filterRow">
+      <div class="fchip active" onclick="filterShop(this,'all')">All</div>
+      <div class="fchip" onclick="filterShop(this,'lips')">Lips</div>
+      <div class="fchip" onclick="filterShop(this,'eyes')">Eyes</div>
+      <div class="fchip" onclick="filterShop(this,'face')">Face</div>
+      <div class="fchip" onclick="filterShop(this,'skincare')">Skincare</div>
     </div>
-    <div class="shop-grid" id="shopGrid">
-      <!-- Shop items placeholder -->
-      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-s)">Curating luxury products for you...</div>
-    </div>
+    <div class="shop-grid" id="shopGrid"></div>
   </div>
 </div>
 
-<!-- PROFILE SCREEN -->
+<!-- ══════════════════════════════════════
+     PROFILE SCREEN (Radiance Revealed)
+══════════════════════════════════════ -->
 <div id="profileScreen" class="screen">
   <div class="prof-topbar">
-    <div class="prof-topbar-l"><div class="prof-av">✨</div><span class="prof-brand">VIBE MIRROR AI</span></div>
-    <span class="material-symbols-outlined ms">auto_awesome</span>
+    <div class="prof-topbar-l">
+      <div class="prof-av" id="profAv">✨</div>
+      <span class="prof-brand">VIBE MIRROR AI</span>
+    </div>
+    <span class="material-symbols-outlined ms" style="font-size:21px;color:var(--rose);cursor:pointer">auto_awesome</span>
   </div>
   <div class="prof-scroll">
     <div class="prof-hero">
       <span class="prof-eye">Your Aesthetic Evolution</span>
       <div class="prof-disp">Radiance<br/>Revealed</div>
+      <p class="prof-sub">A clinical distillation of your journey towards luminous perfection.</p>
     </div>
+
+
+    <!-- UV / Pollution Alert -->
+    <div class="uv-alert" id="uvAlert">
+      <span class="uv-icon">☀️</span>
+      <div class="uv-text" id="uvText"><b>UV Alert — Bhopal</b><br/>High UV index detected. Don't step out without SPF 50!</div>
+    </div>
+
+    <!-- Coin Progress Bar -->
+    <div class="coin-progress">
+      <div class="cp-header">
+        <span class="cp-title">🌟 Pro Unlock Progress</span>
+        <span class="cp-val"><span id="cpCoins">0</span>/100 coins</span>
+      </div>
+      <div class="cp-track"><div class="cp-fill" id="cpFill" style="width:0%"></div></div>
+      <div class="cp-sub">Collect <b>100 Glow Coins</b> (1 coin = 1 cent) to unlock <b>Pro for 30 days FREE</b>.<br/>+1 coin daily · +20 per scan · +2 for IG share</div>
+    </div>
+    <!-- Glow ring -->
     <div class="gring-wrap">
       <div class="gring">
-        <div class="gring-outer"></div><div class="gring-conic"></div>
+        <div class="gring-outer"></div>
+        <div class="gring-conic"></div>
         <div class="gring-inner">
           <span class="gring-lbl">Glow Score</span>
-          <div style="display:flex;align-items:baseline;gap:2px"><span class="gring-num" id="profScore">88</span><span class="gring-den">/100</span></div>
+          <div style="display:flex;align-items:baseline;gap:2px">
+            <span class="gring-num" id="profScore">88</span>
+            <span class="gring-den">/100</span>
+          </div>
+          <div class="gring-peak"><div class="gring-pdot"></div><span class="gring-ptxt">Peak Radiance</span></div>
         </div>
       </div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
     </div>
+
     <div class="sw-title">Skin Wins</div>
     <div class="sw-grid">
-      <div class="swcard"><span class="material-symbols-outlined ms rose">water_drop</span><h4>Hydrated</h4><p>Moisture levels are optimal.</p></div>
-      <div class="swcard"><span class="material-symbols-outlined ms cyan">auto_fix_high</span><h4>Smooth</h4><p>Texture is refined.</p></div>
+      <div class="swcard">
+        <span class="material-symbols-outlined ms rose">water_drop</span>
+        <h4>Hydrated</h4>
+        <p>Cellular moisture levels increased by 24% since last month.</p>
+      </div>
+      <div class="swcard">
+        <span class="material-symbols-outlined ms cyan">auto_fix_high</span>
+        <h4>Smooth Texture</h4>
+        <p>Dermal surface irregularities reduced. Reflective index optimized.</p>
+      </div>
+    </div><!-- /sw-grid -->
+
+    <!-- Beauty Stats Table -->
+    <div class="beauty-stats">
+      <div class="bs-title">Beauty Analytics</div>
+      <table class="bs-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Score</th>
+            <th style="width:90px">Level</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody id="bsTableBody">
+          <tr>
+            <td class="bs-metric-name">💧 Hydration Index</td>
+            <td class="bs-val" id="bsHydration">—</td>
+            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsHBar" style="width:0%"></div></div></td>
+            <td class="bs-delta" id="bsHDelta">Scan to see</td>
+          </tr>
+          <tr>
+            <td class="bs-metric-name">✨ Glow Factor</td>
+            <td class="bs-val" id="bsGlow">—</td>
+            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsGBar" style="width:0%"></div></td>
+            <td class="bs-delta" id="bsGDelta">Scan to see</td>
+          </tr>
+          <tr>
+            <td class="bs-metric-name">◈ Symmetry Score</td>
+            <td class="bs-val" id="bsSym">—</td>
+            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsSBar" style="width:0%"></div></td>
+            <td class="bs-delta" id="bsSDelta">Scan to see</td>
+          </tr>
+          <tr>
+            <td class="bs-metric-name">🎨 Texture Index</td>
+            <td class="bs-val" id="bsTexture">—</td>
+            <td class="bs-bar-cell"><div class="bs-mini-bar"><div class="bs-mini-fill" id="bsTBar" style="width:0%"></div></td>
+            <td class="bs-delta" id="bsTDelta">Scan to see</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="ig-wrap"><button class="ig-btn" onclick="showToast('Sharing — Coming soon!')">SHARE TO INSTAGRAM</button></div>
+
+    <!-- Dermal trajectory -->
+    <div class="traj">
+      <div class="traj-top">
+        <div><div class="traj-title">Dermal Trajectory</div><div class="traj-sub">6-month skin health progression</div></div>
+        <div class="traj-pct">+14.2% OVERALL</div>
+      </div>
+      <div class="traj-bars">
+        <div class="tbar-w"><div class="tbar" style="height:40%"></div><span class="tmonth">Jan</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:55%"></div><span class="tmonth">Feb</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:48%"></div><span class="tmonth">Mar</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:70%"></div><span class="tmonth">Apr</span></div>
+        <div class="tbar-w"><div class="tbar" style="height:82%"></div><span class="tmonth">May</span></div>
+        <div class="tbar-w"><div class="tbar cur" style="height:88%"></div><span class="tmonth cur">Jun</span></div>
+      </div>
+      <div class="traj-line"></div>
+    </div>
+
+    <!-- IG Share -->
+    <div class="ig-wrap">
+      <button class="ig-btn" onclick="goShare()">
+        <svg fill="white" height="22" viewBox="0 0 24 24" width="22"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        <span>SHARE TO INSTAGRAM</span>
+      </button>
+      <p class="ig-credit">Visual storytelling powered by Vibe Mirror AI.</p>
+    </div>
+
+    <div class="prof-settings">
+      <div class="prof-sec-lbl">Settings</div>
+      <div class="prof-row" onclick="showToast('🔒 All face data processed on-device only.')">
+        <div class="prof-row-l"><span>🔒</span><span>Privacy &amp; Data</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
+      </div>
+      <div class="prof-row" onclick="showToast('Coming soon!')">
+        <div class="prof-row-l"><span>🎨</span><span>Skin Tone Preferences</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
+      </div>
+      <div class="prof-row" onclick="resetApp()">
+        <div class="prof-row-l"><span>🔄</span><span>Reset &amp; Re-calibrate</span></div>
+        <span class="material-symbols-outlined ms">arrow_forward_ios</span>
+      </div>
+    </div>
+  </div>
+</div><!-- profileScreen -->
+
+<!-- ══════════════════════════════════════
+     WARDROBE SCREEN
+══════════════════════════════════════ -->
+<div id="wardrobeScreen" class="screen">
+  <div class="ward-hdr">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;letter-spacing:0.2em;color:var(--rose);margin-bottom:4px">VIBE MIRROR AI</div>
+    <h2>My Vanity</h2>
+    <p>Your digitized makeup wardrobe · AI uses this for personalized looks</p>
+  </div>
+  <div class="ward-scroll">
+
+    <!-- Add product form -->
+    <div class="ward-add">
+      <div class="ward-add-title">+ Add a Product</div>
+      <input class="ward-inp" id="wardName" type="text" placeholder="Product name (e.g. MAC Ruby Woo Lipstick)" maxlength="60" autocomplete="off"/>
+      <input class="ward-inp" id="wardBrand" type="text" placeholder="Brand (e.g. MAC, Lakme, Nykaa)" maxlength="40" autocomplete="off"/>
+      <div class="ward-cat-row" id="wardCats">
+        <div class="wcat sel" onclick="selWCat(this,'Lips')">💋 Lips</div>
+        <div class="wcat" onclick="selWCat(this,'Eyes')">👁️ Eyes</div>
+        <div class="wcat" onclick="selWCat(this,'Face')">🌟 Face</div>
+        <div class="wcat" onclick="selWCat(this,'Skincare')">💧 Skincare</div>
+        <div class="wcat" onclick="selWCat(this,'Brows')">✏️ Brows</div>
+        <div class="wcat" onclick="selWCat(this,'Blush')">🌸 Blush</div>
+        <div class="wcat" onclick="selWCat(this,'Contour')">🏔️ Contour</div>
+        <div class="wcat" onclick="selWCat(this,'Fragrance')">🌹 Fragrance</div>
+      </div>
+      <button class="ward-add-btn" onclick="addToWardrobe()">
+        <span class="material-symbols-outlined ms" style="vertical-align:middle;font-size:16px">add_circle</span>
+        Add to My Vanity
+      </button>
+    </div>
+
+    <!-- Owned products list -->
+    <div id="wardItems">
+      <div class="ward-empty" id="wardEmpty">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <p>Your digital vanity is empty.<br/>Add products you own — AI will use them for personalized looks.</p>
+      </div>
+      <div class="ward-items" id="wardList"></div>
+    </div>
+
+  </div>
+</div><!-- wardrobeScreen -->
+
+<!-- ══════════════════════════════════════
+     BOTTOM NAV
+══════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════
+     SHOPPING BOT SCREEN
+══════════════════════════════════════ -->
+<div id="shopBotScreen" class="screen">
+  <div class="sbot-header">
+    <div class="sbot-title">AI Shopping Bot</div>
+    <div class="sbot-sub">✦ SALES INTELLIGENCE ACTIVE</div>
+  </div>
+  <div class="sbot-quick-row">
+    <div class="sbot-qchip" onclick="sbotQuick(this)">🔬 Analyze my skin</div>
+    <div class="sbot-qchip" onclick="sbotQuick(this)">💄 Best lipstick for me?</div>
+    <div class="sbot-qchip" onclick="sbotQuick(this)">☀️ Beat Bhopal heat</div>
+    <div class="sbot-qchip" onclick="sbotQuick(this)">🌸 Dewy glass skin</div>
+    <div class="sbot-qchip" onclick="sbotQuick(this)">💎 Under ₹500 picks</div>
+  </div>
+  <div class="sbot-scroll" id="sbotScroll">
+    <div class="sbot-msg ai">
+      <div class="sbot-av">🛒</div>
+      <div class="sbot-bubble">Hi! I'm your AI Shopping Stylist. I analyze your face scan data and Bhopal's climate to find products you'll <em>actually</em> love. Tell me your skin concern or tap a quick question! ✨</div>
+    </div>
+  </div>
+  <div class="sbot-input-row">
+    <input class="sbot-inp" id="sbotInput" type="text" placeholder="What's your skin concern today?" onkeydown="if(event.key==='Enter')sbotSend()"/>
+    <div class="sbot-send" onclick="sbotSend()">↑</div>
   </div>
 </div>
 
-<!-- NAV BAR -->
-<nav class="navbar">
-  <div class="ntab" id="nt-mirror" onclick="switchTab('mirrorScreen',this)"><span class="material-symbols-outlined ms">camera</span><span class="ntab-lbl">Mirror</span></div>
-  <div class="ntab" id="nt-stylist" onclick="switchTab('stylistScreen',this)"><span class="material-symbols-outlined ms">chat_bubble</span><span class="ntab-lbl">Stylist</span></div>
-  <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this)"><span class="material-symbols-outlined ms">shopping_bag</span><span class="ntab-lbl">Shop</span></div>
-  <div class="ntab" id="nt-profile" onclick="switchTab('profileScreen',this)"><span class="material-symbols-outlined ms">person</span><span class="ntab-lbl">Profile</span></div>
+<nav id="bottomNav" style="display:none">
+  <div class="ntab active" id="nt-mirror" onclick="switchTab('mirrorScreen',this)">
+    <span class="material-symbols-outlined ms">face_5</span>
+    <span class="ntab-lbl">Mirror</span>
+  </div>
+  <div class="ntab" id="nt-stylist" onclick="switchTab('stylistScreen',this)">
+    <span class="material-symbols-outlined ms">content_cut</span>
+    <span class="ntab-lbl">Stylist</span>
+  </div>
+  <div class="ntab" id="nt-wardrobe" onclick="switchTab('wardrobeScreen',this);renderWardrobe()">
+    <span class="material-symbols-outlined ms">checkroom</span>
+    <span class="ntab-lbl">Vanity</span>
+  </div>
+  <div class="ntab" id="nt-shop" onclick="switchTab('shopScreen',this);renderShop()">
+    <span class="material-symbols-outlined ms">shopping_bag</span>
+    <span class="ntab-lbl">Shop</span>
+  </div>
+  <div class="ntab" id="nt-profile" onclick="switchTab('profileScreen',this)">
+    <span class="material-symbols-outlined ms">person</span>
+    <span class="ntab-lbl">Profile</span>
+  </div>
 </nav>
 
 <div id="toast"></div>
 </div><!-- app -->
 
-<!-- script.js would contain the FaceMesh class and camera logic -->
 <script src="script.js"></script>
 <script>
-// Navigation
+// ── NAV ───────────────────────────────────────────────────────────────────
 function switchTab(id, el) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(el) el.classList.add('active');
+  el.classList.add('active');
 }
 
-// Onboarding
+// ── ONBOARD UI ────────────────────────────────────────────────────────────
 let obStep = 0;
 function goStep(n) {
   document.getElementById('s'+obStep).classList.remove('active');
@@ -895,47 +1598,20 @@ function goStep(n) {
   document.getElementById('s'+n).classList.add('active');
   document.getElementById('d'+n).classList.add('active');
 }
-function finishOB() {
-  switchTab('mirrorScreen', document.getElementById('nt-mirror'));
-}
-
-// Mirror logic
-function doScan() {
-  const btn = document.getElementById('scanBtn');
-  const panel = document.getElementById('mirrorPanel');
-  btn.innerHTML = '<span class="btn-spin"></span> Scanning...';
-  btn.disabled = true;
-  
-  setTimeout(() => {
-    btn.innerHTML = '<span class="material-symbols-outlined ms">center_focus_weak</span>Scan Skin';
-    btn.disabled = false;
-    document.getElementById('vibeNum').textContent = '92';
-    document.getElementById('vibeBar').style.width = '92%';
-    document.getElementById('compTitle').textContent = '"Radiant & Glowing"';
-    document.getElementById('compSub').textContent = 'Your skin shows high luminosity today. Keep up the hydration!';
-    
-    // Fix: Result panel slide up animation
-    panel.classList.remove('hidden-results');
-    showToast('✨ Analysis Complete!');
-  }, 2000);
-}
-
-function triggerFlash() {
-  const f = document.getElementById('flash');
-  f.style.opacity = '1';
-  setTimeout(() => f.style.opacity = '0', 100);
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.innerHTML = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-
 function selGender(g) {
   document.getElementById('gF').classList.toggle('sel', g==='female');
   document.getElementById('gM').classList.toggle('sel', g==='male');
+  if(window.UP) window.UP.gender = g;
+}
+function selVoice(v) {
+  ['vc0','vc1','vc2','vc3'].forEach((id,i)=>
+    document.getElementById(id).classList.toggle('sel', ['sweet','pro','deep','calm'][i]===v));
+  if(window.UP) window.UP.voice = v;
+  // Voice preview
+  const greet = v==='sweet'||v==='calm'
+    ? "Hi! I'm Vibe AI, your beauty guide."
+    : "Hello! I'm Marcus, your precision stylist.";
+  if(window.speakText) speakText(greet);
 }
 function selSwatch(el) {
   document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
@@ -943,8 +1619,342 @@ function selSwatch(el) {
 }
 function togChip(el){ el.classList.toggle('sel') }
 function selGoal(el,g) {
-  document.querySelectorAll('.goal-row').forEach(r=>r.classList.remove('sel'));
+  document.querySelectorAll('.goal-row').forEach(r=>{
+    r.classList.remove('sel');
+    const a=r.querySelector('.goal-arrow');
+    a.textContent='arrow_forward_ios';a.style.color='';a.style.fontVariationSettings='';
+  });
   el.classList.add('sel');
+  const a=el.querySelector('.goal-arrow');
+  a.textContent='check_circle';a.style.color='var(--rose)';a.style.fontVariationSettings="'FILL' 1";
+  if(window.UP) window.UP.goal = g;
+}
+
+// ── SHOP ──────────────────────────────────────────────────────────────────
+const PRODS = [
+  {e:'💋',brand:'Sugar Cosmetics',name:'Smudge Me Not Liquid Lipstick',price:'₹599',badge:'Bestseller',cat:'lips',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=sugar+smudge+me+not'},
+  {e:'🌟',brand:'Nykaa Cosmetics',name:'Skin Genius Foundation',price:'₹899',badge:'AI Pick',cat:'face',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=nykaa+skin+genius'},
+  {e:'✨',brand:'Dot & Key',name:'Glow Radiance Serum SPF 50',price:'₹695',badge:'New',cat:'skincare',plt:'amazon',url:'https://www.amazon.in/s?k=dot+key+glow+serum'},
+  {e:'👁️',brand:'Plum',name:'Eye Fix Kohl Kajal Waterproof',price:'₹249',badge:'Trending',cat:'eyes',plt:'myntra',url:'https://www.myntra.com/plum+kajal'},
+  {e:'💅',brand:'MyGlamm',name:'LIT Liquid Matte Lipstick',price:'₹349',badge:'Sale',cat:'lips',plt:'purplle',url:'https://www.purplle.com/search?q=myglamm+lit'},
+  {e:'🌸',brand:'Mamaearth',name:'Ubtan Face Wash Turmeric',price:'₹199',badge:'Natural',cat:'skincare',plt:'amazon',url:'https://www.amazon.in/s?k=mamaearth+ubtan'},
+  {e:'🎨',brand:'Lakme',name:'9to5 Weightless Mousse Foundation',price:'₹425',badge:'Classic',cat:'face',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=lakme+9to5'},
+  {e:'💎',brand:'Colorbar',name:'Smoky Eyes Palette',price:'₹799',badge:'AI Pick',cat:'eyes',plt:'nykaa',url:'https://www.nykaa.com/search/result/?q=colorbar+smoky+eyes'},
+];
+const PL={nykaa:'p-nykaa',amazon:'p-amazon',myntra:'p-myntra',purplle:'p-purplle'};
+const PN={nykaa:'Nykaa',amazon:'Amazon',myntra:'Myntra',purplle:'Purplle'};
+
+let activeF='all';
+function filterShop(el,f){
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');activeF=f;renderShop();
+}
+function renderShop(){
+  const g=document.getElementById('shopGrid');
+  const list=activeF==='all'?PRODS:PRODS.filter(p=>p.cat===activeF);
+  g.innerHTML=list.map(p=>`
+    <div class="scard">
+      <div class="simg"><span>${p.e}</span><span class="sbadge">${p.badge}</span><span class="sheart">🤍</span>
+        <span class="${PL[p.plt]} pplatform" style="position:absolute;bottom:7px;right:7px">${PN[p.plt]}</span>
+      </div>
+      <div class="sbody">
+        <div class="sbrand">${p.brand}</div>
+        <div class="sname">${p.name}</div>
+        <div class="sprice">${p.price}</div>
+        <button class="sbuy" onclick="window.open('${p.url}','_blank')">Shop Now →</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── WARDROBE (My Vanity) ──────────────────────────────────────────────────
+const WARD_KEY = 'vm_wardrobe_v1';
+let selectedWCat = 'Lips';
+
+window.selWCat = function(el, cat) {
+  document.querySelectorAll('.wcat').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedWCat = cat;
+};
+
+window.addToWardrobe = function() {
+  const nameEl  = document.getElementById('wardName');
+  const brandEl = document.getElementById('wardBrand');
+  const name    = nameEl.value.trim();
+  const brand   = brandEl.value.trim();
+  if (!name) { showToast('⚠️ Please enter a product name'); return; }
+
+  const EMOJI_MAP = {Lips:'💋',Eyes:'👁️',Face:'🌟',Skincare:'💧',Brows:'✏️',Blush:'🌸',Contour:'🏔️',Fragrance:'🌹'};
+  const ward = getWardrobe();
+  ward.push({ id: Date.now(), name, brand: brand || 'My Brand', cat: selectedWCat, emoji: EMOJI_MAP[selectedWCat] || '✨', addedAt: new Date().toLocaleDateString() });
+  localStorage.setItem(WARD_KEY, JSON.stringify(ward));
+
+  nameEl.value = ''; brandEl.value = '';
+  renderWardrobe();
+  showToast(`✅ "${name}" added to your Vanity!`);
+  awardCoins(5);
+};
+
+function getWardrobe() {
+  try { return JSON.parse(localStorage.getItem(WARD_KEY) || '[]'); } catch { return []; }
+}
+
+function getWardrobeString() {
+  const w = getWardrobe();
+  if (!w.length) return '';
+  return 'User already owns: ' + w.map(p => `${p.name} by ${p.brand} (${p.cat})`).join(', ') + '. Prioritize these in your suggestions before recommending new purchases.';
+}
+
+window.renderWardrobe = function() {
+  const ward  = getWardrobe();
+  const empty = document.getElementById('wardEmpty');
+  const list  = document.getElementById('wardList');
+  if (!list) return;
+
+  if (!ward.length) {
+    if (empty) empty.style.display = 'block';
+    list.innerHTML = ''; return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  // Group by category
+  const cats = [...new Set(ward.map(w => w.cat))];
+  list.innerHTML = cats.map(cat => {
+    const items = ward.filter(w => w.cat === cat);
+    return `
+      <div class="ward-section-lbl">${cat}</div>
+      ${items.map(item => `
+        <div class="ward-item">
+          <div class="wi-emoji">${item.emoji}</div>
+          <div class="wi-info">
+            <div class="wi-name">${item.name}</div>
+            <div class="wi-cat">${item.brand} · Added ${item.addedAt}</div>
+          </div>
+          <button class="wi-del" onclick="deleteWardItem(${item.id})" title="Remove">✕</button>
+        </div>
+      `).join('')}
+    `;
+  }).join('');
+};
+
+window.deleteWardItem = function(id) {
+  const w = getWardrobe().filter(p => p.id !== id);
+  localStorage.setItem(WARD_KEY, JSON.stringify(w));
+  renderWardrobe();
+  showToast('Removed from vanity');
+};
+
+// ── INSTAGRAM SHARE — Real canvas-generated card ──────────────────────────
+window.goShare = function() {
+  const score     = vibeNum.textContent === '—' ? '88' : vibeNum.textContent;
+  const compliment= document.getElementById('compTitle').textContent.replace(/['"]/g,'');
+  const name      = UP.name || '';
+
+  // Build share card on a canvas
+  const sc  = document.createElement('canvas');
+  sc.width  = 1080;
+  sc.height = 1920; // IG Story aspect ratio 9:16
+  const c   = sc.getContext('2d');
+
+  // Background gradient
+  const bg = c.createLinearGradient(0, 0, 0, 1920);
+  bg.addColorStop(0,   '#0e0a06');
+  bg.addColorStop(0.4, '#1a1008');
+  bg.addColorStop(1,   '#0a0606');
+  c.fillStyle = bg;
+  c.fillRect(0, 0, 1080, 1920);
+
+  // Gold border frame
+  c.strokeStyle = 'rgba(200,150,90,0.7)';
+  c.lineWidth   = 3;
+  c.strokeRect(40, 40, 1000, 1840);
+
+  // Corner accents
+  const corners = [[40,40,1],[40,40,2],[1040,40,3],[1040,40,4],[40,1880,5],[40,1880,6],[1040,1880,7],[1040,1880,8]];
+  c.strokeStyle = 'rgba(229,177,161,0.9)';
+  c.lineWidth   = 4;
+  [[40,40,1,0],[40,40,0,1],[1040,40,-1,0],[1040,40,0,1],[40,1880,1,0],[40,1880,0,-1],[1040,1880,-1,0],[1040,1880,0,-1]].forEach(([x,y,dx,dy])=>{
+    c.beginPath(); c.moveTo(x,y); c.lineTo(x+dx*80,y+dy*80); c.stroke();
+  });
+
+  // Brand
+  c.textAlign   = 'center';
+  c.fillStyle   = 'rgba(229,177,161,0.85)';
+  c.font        = '500 36px "Space Grotesk",sans-serif';
+  c.letterSpacing = '8px';
+  c.fillText('VIBE MIRROR AI', 540, 160);
+
+  c.fillStyle = 'rgba(255,255,255,0.25)';
+  c.font      = '300 22px Manrope,sans-serif';
+  c.fillText('LUXURY BEAUTY INTELLIGENCE', 540, 200);
+
+  // Decorative line
+  c.strokeStyle = 'rgba(229,177,161,0.35)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140,230); c.lineTo(940,230); c.stroke();
+
+  // Glow score big number
+  c.fillStyle = 'rgba(229,177,161,0.12)';
+  c.font      = '300 340px "Cormorant Garamond",serif';
+  c.fillText(score, 540, 700);
+
+  c.fillStyle = '#fff';
+  c.font      = '300 280px "Cormorant Garamond",serif';
+  c.fillText(score, 540, 690);
+
+  // /100
+  c.fillStyle = 'rgba(229,177,161,0.55)';
+  c.font      = '300 64px "Cormorant Garamond",serif';
+  c.fillText('/100', 540, 760);
+
+  // GLOW SCORE label
+  c.fillStyle = 'rgba(229,177,161,0.8)';
+  c.font      = '600 28px "Space Grotesk",sans-serif';
+  c.fillText('GLOW SCORE', 540, 830);
+
+  // Peak radiance dot + text
+  c.fillStyle = '#63f7ff';
+  c.beginPath(); c.arc(440, 895, 8, 0, Math.PI*2); c.fill();
+  c.shadowBlur  = 14; c.shadowColor = '#63f7ff';
+  c.beginPath(); c.arc(440, 895, 8, 0, Math.PI*2); c.fill();
+  c.shadowBlur = 0;
+  c.fillStyle = '#63f7ff';
+  c.font      = '600 24px "Space Grotesk",sans-serif';
+  c.textAlign = 'left';
+  c.fillText('PEAK RADIANCE', 458, 904);
+
+  // Divider
+  c.strokeStyle = 'rgba(229,177,161,0.22)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140, 940); c.lineTo(940, 940); c.stroke();
+
+  // Compliment quote
+  c.textAlign   = 'center';
+  c.fillStyle   = 'rgba(255,255,255,0.88)';
+  c.font        = 'italic 300 54px "Cormorant Garamond",serif';
+  const words   = compliment.split(' ');
+  let line='', y=1060;
+  words.forEach(w => {
+    const test = line + w + ' ';
+    if (c.measureText(test).width > 800 && line) {
+      c.fillText('"'+line.trim()+'"', 540, y); y += 72; line = w + ' ';
+    } else { line = test; }
+  });
+  if (line.trim()) c.fillText('"'+line.trim()+'"', 540, y);
+
+  // Name greeting
+  if (name) {
+    c.fillStyle = 'rgba(229,177,161,0.7)';
+    c.font      = '500 30px Manrope,sans-serif';
+    c.fillText(`— ${name}'s AI Mirror Reading`, 540, y+80);
+  }
+
+  // Stats row
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 140, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(229,177,161,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.streak||1, 260, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('DAY STREAK', 260, 1395);
+
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 420, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(99,247,255,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.scanCount||1, 540, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('SCANS', 540, 1395);
+
+  c.fillStyle   = 'rgba(255,255,255,0.06)';
+  c.beginPath();
+  roundRectC(c, 700, 1280, 240, 140, 16);
+  c.fill();
+  c.fillStyle   = 'rgba(229,177,161,0.9)';
+  c.font        = '300 52px "Cormorant Garamond",serif';
+  c.fillText(UP.glowCoins||0, 820, 1362);
+  c.fillStyle   = 'rgba(255,255,255,0.3)';
+  c.font        = '600 18px "Space Grotesk",sans-serif';
+  c.fillText('GLOW COINS', 820, 1395);
+
+  // Bottom divider
+  c.strokeStyle = 'rgba(229,177,161,0.22)';
+  c.lineWidth   = 1;
+  c.beginPath(); c.moveTo(140,1460); c.lineTo(940,1460); c.stroke();
+
+  // Hashtags
+  c.fillStyle = 'rgba(229,177,161,0.5)';
+  c.font      = '500 26px Manrope,sans-serif';
+  c.fillText('#VibeMirrorAI  #GlowCheck  #BeautyAI  #SkinCare', 540, 1540);
+
+  // URL
+  c.fillStyle = 'rgba(255,255,255,0.25)';
+  c.font      = '400 24px Manrope,sans-serif';
+  c.fillText('vibemirror.ai', 540, 1590);
+
+  // IG-style gradient border at very bottom
+  const igGrad = c.createLinearGradient(140, 0, 940, 0);
+  igGrad.addColorStop(0,   '#f09433');
+  igGrad.addColorStop(0.25,'#e6683c');
+  igGrad.addColorStop(0.5, '#dc2743');
+  igGrad.addColorStop(0.75,'#cc2366');
+  igGrad.addColorStop(1,   '#bc1888');
+  c.strokeStyle = igGrad;
+  c.lineWidth   = 6;
+  c.beginPath(); c.moveTo(140,1640); c.lineTo(940,1640); c.stroke();
+
+  c.fillStyle = 'rgba(255,255,255,0.35)';
+  c.font      = '600 22px "Space Grotesk",sans-serif';
+  c.fillText('Share to Instagram Stories', 540, 1690);
+
+  // Try to download / share
+  sc.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    // Try native share first (mobile)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'vibe-score.png', { type: 'image/png' })] })) {
+      navigator.share({
+        title: `My Glow Score: ${score}/100`,
+        text: `${compliment}\n\n#VibeMirrorAI #GlowCheck`,
+        files: [new File([blob], 'vibe-mirror-glow.png', { type: 'image/png' })]
+      }).catch(() => downloadCard(url));
+    } else {
+      downloadCard(url);
+    }
+  }, 'image/png');
+};
+
+function downloadCard(url) {
+  const a   = document.createElement('a');
+  a.href    = url;
+  a.download= `VibeMirrorAI-GlowScore-${Date.now()}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('📸 Story card downloaded! Open Instagram → Add to Story');
+}
+
+function roundRectC(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function resetApp(){
+  localStorage.removeItem('vm_profile_v3');location.reload();
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.innerHTML=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
 </body>
