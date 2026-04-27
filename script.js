@@ -161,41 +161,83 @@ function initFaceMesh(cb) {
 }
 
 async function initCamera() {
+  // Safety: if already running, skip
+  if (_loopRunning) return;
+
   try {
-    // Try front camera with fallback
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-    } catch {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    let stream = null;
+
+    // Constraint priority: front camera ideal → any camera fallback
+    const constraints = [
+      { video: { facingMode: { exact: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+      { video: { facingMode: 'user' }, audio: false },
+      { video: { facingMode: { ideal: 'user' } }, audio: false },
+      { video: true, audio: false },
+    ];
+
+    for (const c of constraints) {
+      try { stream = await navigator.mediaDevices.getUserMedia(c); if (stream) break; }
+      catch {}
     }
 
-    videoEl.srcObject = stream;
+    if (!stream) throw new Error('NoStreamError');
 
-    const onReady = () => {
-      videoEl.play().catch(() => {});
+    videoEl.srcObject = stream;
+    videoEl.muted     = true;
+    videoEl.playsInline = true;
+
+    // Force play with multiple fallbacks
+    const startPlay = async () => {
+      try { await videoEl.play(); } catch {}
       camPH.classList.add('hidden');
-      arPill.classList.add('visible');
+      if (arPill) arPill.classList.add('visible');
       resizeC();
-      scanBtn.disabled = false;
+      if (scanBtn) scanBtn.disabled = false;
       if (!_loopRunning) { _loopRunning = true; loop(); }
     };
 
-    videoEl.onloadedmetadata = onReady;
+    // Event-based start
+    videoEl.addEventListener('loadedmetadata', startPlay, { once: true });
+    videoEl.addEventListener('canplay',        startPlay, { once: true });
 
-    // Android fallback: onloadedmetadata sometimes never fires
-    setTimeout(() => {
-      if (videoEl.readyState >= 1) onReady();
-    }, 2000);
+    // Aggressive Android/iOS fallback timer
+    let attempts = 0;
+    const fallbackTimer = setInterval(async () => {
+      attempts++;
+      if (videoEl.readyState >= 2) {
+        clearInterval(fallbackTimer);
+        await startPlay();
+      } else if (attempts > 20) {
+        clearInterval(fallbackTimer);
+        // Last resort: try play() directly even without metadata
+        videoEl.play().catch(() => {});
+        setTimeout(startPlay, 500);
+      }
+    }, 300);
 
-  } catch(err) {
-    const msg = err.name === 'NotAllowedError'
-      ? '🔒 Camera blocked — tap the lock icon in address bar and allow camera'
-      : '📷 Camera error: ' + err.name + '. Please refresh.';
-    camPH.querySelector('p').textContent = msg;
+  } catch (err) {
+    console.error('Camera error:', err);
+    let msg = '📷 Camera error. Please refresh and allow camera access.';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      msg = '🔒 Camera blocked. Tap the 🔒 icon in your browser address bar → Allow camera → Refresh page.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      msg = '📷 No camera found on this device.';
+    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+      msg = '📷 Camera is being used by another app. Close other apps and refresh.';
+    } else if (err.name === 'OverconstrainedError') {
+      msg = '📷 Camera constraint issue. Retrying...';
+      // Retry with minimal constraints
+      setTimeout(() => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+          .then(s => { videoEl.srcObject = s; videoEl.play().then(() => { camPH.classList.add('hidden'); resizeC(); _loopRunning = true; loop(); }); })
+          .catch(() => {});
+      }, 1000);
+      return;
+    }
+    if (camPH) {
+      const p = camPH.querySelector('p');
+      if (p) p.textContent = msg;
+    }
   }
 }
 
@@ -326,91 +368,263 @@ function fillPoly(lm, idx, W, H, col) {
   ctx.closePath(); ctx.fill();
 }
 
+// ── 2-MODE DRAWING SYSTEM ─────────────────────────────────────────────────
+// _mode is set by setMode() — 'glow' or 'guide'
+// _guideStep is set by selStep() — 'eyes','brows','contour','blush','lips'
+let _guideStep = 'eyes';
+
+window.selStep = function(el, step) {
+  document.querySelectorAll('.ms-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  _guideStep = step;
+  const instr = document.getElementById('msInstr');
+  if (instr) instr.textContent = STEPS[step] || '';
+  speakText(STEPS[step] || '');
+};
+
 function drawSkeleton(lm) {
+  if (window._mode === 'guide') {
+    drawGuideMode(lm);
+  } else {
+    drawGlowMode(lm);
+  }
+}
+
+// ── GLOW MODE — premium minimal WOW overlay (reference image style) ────────
+function drawGlowMode(lm) {
   const W = arCanvas.width, H = arCanvas.height;
+  const t = Date.now() / 1000;
 
-  // 1. Face oval — gold dashed
-  polyC(lm, I_OVAL, W, H, 'rgba(229,177,161,0.48)', 1.4, [4, 6]);
+  // Face oval — gold dashed breathing animation
+  const oa = 0.35 + Math.sin(t * 1.5) * 0.08;
+  polyC(lm, I_OVAL, W, H, `rgba(229,177,161,${oa})`, 1.3, [4, 6]);
 
-  // 2. Eyebrows — solid bright gold (key feature)
-  polyO(lm, I_LBROW, W, H, 'rgba(229,177,161,0.95)', 2.2);
-  polyO(lm, I_RBROW, W, H, 'rgba(229,177,161,0.95)', 2.2);
+  // Eyebrows — solid bright gold
+  polyO(lm, I_LBROW, W, H, 'rgba(229,177,161,0.92)', 2.2);
+  polyO(lm, I_RBROW, W, H, 'rgba(229,177,161,0.92)', 2.2);
 
-  // 3. Eyes — cyan closed polygon
-  polyC(lm, I_LEYE, W, H, 'rgba(180,225,255,0.88)', 1.8);
-  polyC(lm, I_REYE, W, H, 'rgba(180,225,255,0.88)', 1.8);
+  // Eyes — cyan closed with subtle fill
+  polyC(lm, I_LEYE, W, H, 'rgba(180,225,255,0.85)', 1.8);
+  polyC(lm, I_REYE, W, H, 'rgba(180,225,255,0.85)', 1.8);
+  fillPoly(lm, I_LEYE, W, H, 'rgba(99,247,255,0.07)');
+  fillPoly(lm, I_REYE, W, H, 'rgba(99,247,255,0.07)');
 
-  // 4. Eye fill — subtle cyan glow
-  fillPoly(lm, I_LEYE, W, H, 'rgba(99,247,255,0.08)');
-  fillPoly(lm, I_REYE, W, H, 'rgba(99,247,255,0.08)');
+  // Cheekbone glow arcs (reference image — that beautiful golden arc)
+  drawCheekArcs(lm, W, H, 'rgba(229,177,161,0.72)', 2.0, []);
 
-  // 5. Eyeliner coach dotted overlay
-  polyO(lm, I_LEYE, W, H, 'rgba(99,247,255,0.45)', 1.0, [2, 4]);
-  polyO(lm, I_REYE, W, H, 'rgba(99,247,255,0.45)', 1.0, [2, 4]);
+  // Lips — rose outer only
+  polyC(lm, I_LIPS, W, H, 'rgba(210,100,90,0.85)', 1.9);
+  fillPoly(lm, I_LIPS, W, H, 'rgba(210,80,70,0.08)');
 
-  // 6. Nose bridge — subtle white
-  polyO(lm, I_NOSE, W, H, 'rgba(255,255,255,0.2)', 0.9);
-
-  // 7. Cheekbone contour curves (from reference image 1 & 3)
-  const [clx, cly] = P(lm, 234, W, H);
-  const [crx, cry] = P(lm, 454, W, H);
-  const [nx,  ny]  = P(lm, 4,   W, H);
-  const [chinx, chiny] = P(lm, 152, W, H);
-
-  ctx.strokeStyle = 'rgba(229,177,161,0.7)';
-  ctx.lineWidth   = 1.9;
+  // Golden ratio horizontal guides — very subtle
+  const fL = lm[234].x * W - 20;
+  const fR = lm[454].x * W + 20;
+  ctx.strokeStyle = 'rgba(229,177,161,0.18)';
+  ctx.lineWidth = 0.7; ctx.setLineDash([5, 8]);
+  [lm[10].y*H, lm[4].y*H, lm[152].y*H].forEach(y => {
+    ctx.beginPath(); ctx.moveTo(fL, y); ctx.lineTo(fR, y); ctx.stroke();
+  });
   ctx.setLineDash([]);
 
-  // Left cheekbone arc
-  ctx.beginPath();
-  ctx.moveTo(clx + (nx - clx) * 0.28, cly + (ny - cly) * 0.62);
-  ctx.quadraticCurveTo(
-    clx + (nx - clx) * 0.12, cly + (chiny - cly) * 0.52,
-    chinx + (clx - chinx) * 0.36, chiny - (chiny - cly) * 0.1
-  );
-  ctx.stroke();
+  // Glowing highlight dots — cheekbones, nose, cupid's bow
+  const pulse = 0.7 + Math.sin(t * 2) * 0.25;
+  gDot(...P(lm, 234, W, H), 18, `rgba(229,177,161,${pulse})`);
+  gDot(...P(lm, 454, W, H), 18, `rgba(229,177,161,${pulse})`);
+  gDot(...P(lm, 1,   W, H), 12, `rgba(255,240,200,${pulse})`);
+  gDot(...P(lm, 0,   W, H), 9,  `rgba(255,200,180,${pulse})`);
 
-  // Right cheekbone arc
-  ctx.beginPath();
-  ctx.moveTo(crx + (nx - crx) * 0.28, cry + (ny - cry) * 0.62);
-  ctx.quadraticCurveTo(
-    crx + (nx - crx) * 0.12, cry + (chiny - cry) * 0.52,
-    chinx + (crx - chinx) * 0.36, chiny - (chiny - cry) * 0.1
-  );
-  ctx.stroke();
-
-  // 8. Lips outer — rose/coral
-  polyC(lm, I_LIPS,  W, H, 'rgba(210,100,90,0.88)', 1.9);
-
-  // 9. Lips inner — dotted coach overlay
-  polyC(lm, I_LIPSI, W, H, 'rgba(255,140,120,0.52)', 1.1, [2, 3]);
-
-  // 10. Lip subtle fill
-  fillPoly(lm, I_LIPS, W, H, 'rgba(210,80,70,0.09)');
-
-  // 11. Golden ratio horizontal guide lines
-  const fL = lm[234].x * W - 18;
-  const fR = lm[454].x * W + 18;
-  const ratioY = [lm[10].y * H, lm[66].y * H, lm[4].y * H, lm[17].y * H, lm[152].y * H];
-  ctx.strokeStyle = 'rgba(229,177,161,0.2)';
-  ctx.lineWidth = 0.8; ctx.setLineDash([5, 8]);
-  ratioY.forEach(y => { ctx.beginPath(); ctx.moveTo(fL, y); ctx.lineTo(fR, y); ctx.stroke(); });
-  ctx.setLineDash([]);
-
-  // 12. Glow dots — cheekbones, nose, lip corners
-  gDot(...P(lm, 234, W, H), 17, 'rgba(229,177,161,1)');
-  gDot(...P(lm, 454, W, H), 17, 'rgba(229,177,161,1)');
-  gDot(...P(lm, 1,   W, H), 11, 'rgba(229,177,161,1)');
-  gDot(...P(lm, 61,  W, H), 10, 'rgba(210,100,90,1)');
-  gDot(...P(lm, 291, W, H), 10, 'rgba(210,100,90,1)');
-
-  // 13. Micro white dots on skeleton intersections
-  [10, 152, 107, 336, 33, 263, 1, 61, 291].forEach(i => {
-    const [x, y] = P(lm, i, W, H);
-    ctx.fillStyle = 'rgba(255,255,255,0.62)';
-    ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
+  // Micro white skeleton dots
+  [10,152,107,336,33,263].forEach(i => {
+    const [x,y] = P(lm,i,W,H);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.arc(x,y,1.5,0,Math.PI*2); ctx.fill();
   });
 }
+
+// ── GUIDE MODE — full face instructional makeup lines ─────────────────────
+// This draws ALL zones always, with the active step HIGHLIGHTED
+function drawGuideMode(lm) {
+  const W = arCanvas.width, H = arCanvas.height;
+  const t = Date.now() / 1000;
+  const step = _guideStep;
+
+  // Always draw face oval
+  polyC(lm, I_OVAL, W, H, 'rgba(255,255,255,0.22)', 1.0, [3,5]);
+
+  // ── BROWS guide ──────────────────────────────────────────────────────────
+  const browActive = step === 'brows';
+  const browCol = browActive ? `rgba(229,177,161,${0.85+Math.sin(t*3)*0.12})` : 'rgba(229,177,161,0.35)';
+  const browLw  = browActive ? 2.8 : 1.2;
+  polyO(lm, I_LBROW, W, H, browCol, browLw);
+  polyO(lm, I_RBROW, W, H, browCol, browLw);
+  if (browActive) {
+    // Brow arch peak dots — show exactly where arch should be
+    gDot(...P(lm,105,W,H), 10, 'rgba(229,177,161,0.9)');
+    gDot(...P(lm,334,W,H), 10, 'rgba(229,177,161,0.9)');
+    // Brow start dots
+    gDot(...P(lm,46, W,H), 7,  'rgba(229,177,161,0.7)');
+    gDot(...P(lm,276,W,H), 7,  'rgba(229,177,161,0.7)');
+    // Brow end dots
+    gDot(...P(lm,107,W,H), 7,  'rgba(229,177,161,0.7)');
+    gDot(...P(lm,336,W,H), 7,  'rgba(229,177,161,0.7)');
+    drawLabel(W*0.5, lm[10].y*H - 30, 'Fill sparse areas along gold arc', W, H);
+  }
+
+  // ── EYES guide ───────────────────────────────────────────────────────────
+  const eyeActive = step === 'eyes';
+  const eyeCol = eyeActive ? `rgba(99,247,255,${0.9+Math.sin(t*3)*0.08})` : 'rgba(99,247,255,0.28)';
+  const eyeLw  = eyeActive ? 2.4 : 1.0;
+  polyC(lm, I_LEYE, W, H, eyeCol, eyeLw);
+  polyC(lm, I_REYE, W, H, eyeCol, eyeLw);
+  if (eyeActive) {
+    fillPoly(lm, I_LEYE, W, H, 'rgba(99,247,255,0.12)');
+    fillPoly(lm, I_REYE, W, H, 'rgba(99,247,255,0.12)');
+
+    // Upper lid liner path — separate brighter line
+    const I_LEYE_UP = [246,161,160,159,158,157,173];
+    const I_REYE_UP = [466,388,387,386,385,384,398];
+    polyO(lm, I_LEYE_UP, W, H, 'rgba(99,247,255,0.98)', 3.0);
+    polyO(lm, I_REYE_UP, W, H, 'rgba(99,247,255,0.98)', 3.0);
+
+    // Wing extension lines
+    const [lx,ly] = P(lm,133,W,H), [lx2,ly2] = P(lm,130,W,H);
+    const [rx,ry] = P(lm,362,W,H), [rx2,ry2] = P(lm,359,W,H);
+    ctx.strokeStyle='rgba(99,247,255,0.9)'; ctx.lineWidth=2.5; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx-(lx2-lx)*2.2, ly-(ly2-ly)*1.8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx+(rx-rx2)*2.2, ry-(ry2-ry)*1.8); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Inner corner highlight dots
+    gDot(...P(lm,133,W,H), 7, 'rgba(255,255,255,0.8)');
+    gDot(...P(lm,362,W,H), 7, 'rgba(255,255,255,0.8)');
+    drawLabel(W*0.5, lm[33].y*H - 35, 'Trace liner along cyan path · Wing at corner', W, H);
+  }
+
+  // ── CONTOUR guide ────────────────────────────────────────────────────────
+  const contourActive = step === 'contour';
+  const contourAlpha  = contourActive ? 0.85 : 0.2;
+  if (contourActive) {
+    // Full contour map — forehead, temples, cheeks, jaw, nose
+    drawCheekArcs(lm, W, H, `rgba(150,100,60,${contourAlpha+Math.sin(t*3)*0.1})`, 3.2, []);
+    // Nose shadow sides
+    drawNoseShadow(lm, W, H, contourActive);
+    // Forehead hairline contour
+    const fhPts = [10,109,67,103,54,21,162,127,234].reverse().concat([454,323,127,162,21,54,103,67,109,10]);
+    polyO(lm, [10,109,67,103,54], W, H, `rgba(150,100,60,0.6)`, 1.8, [3,4]);
+    polyO(lm, [10,338,297,332], W, H, `rgba(150,100,60,0.6)`, 1.8, [3,4]);
+    // Jaw shadow
+    const jawPts = [172,136,150,149,148,152,377,400,378,379,365,397,288,361,323];
+    polyO(lm, jawPts, W, H, `rgba(150,100,60,0.5)`, 1.5, [2,4]);
+    drawLabel(W*0.5, lm[4].y*H + 20, 'Blend bronzer along gold arcs downward', W, H);
+  } else {
+    drawCheekArcs(lm, W, H, `rgba(150,100,60,${contourAlpha})`, 1.2, [3,5]);
+  }
+
+  // ── BLUSH guide ──────────────────────────────────────────────────────────
+  const blushActive = step === 'blush';
+  if (blushActive) {
+    const [clx,cly] = P(lm,234,W,H);
+    const [crx,cry] = P(lm,454,W,H);
+    const faceW = Math.abs(lm[454].x - lm[234].x) * W;
+    const blR = faceW * 0.22;
+    const pulse2 = 0.25 + Math.sin(t*2.5)*0.1;
+
+    // Left blush zone
+    const blGL = ctx.createRadialGradient(clx+faceW*0.08,cly+faceW*0.05,0, clx+faceW*0.08,cly+faceW*0.05,blR);
+    blGL.addColorStop(0, `rgba(229,130,150,${pulse2})`);
+    blGL.addColorStop(1, 'rgba(229,130,150,0)');
+    ctx.fillStyle=blGL; ctx.beginPath(); ctx.arc(clx+faceW*0.08,cly+faceW*0.05,blR,0,Math.PI*2); ctx.fill();
+
+    // Right blush zone
+    const blGR = ctx.createRadialGradient(crx-faceW*0.08,cry+faceW*0.05,0, crx-faceW*0.08,cry+faceW*0.05,blR);
+    blGR.addColorStop(0, `rgba(229,130,150,${pulse2})`);
+    blGR.addColorStop(1, 'rgba(229,130,150,0)');
+    ctx.fillStyle=blGR; ctx.beginPath(); ctx.arc(crx-faceW*0.08,cry+faceW*0.05,blR,0,Math.PI*2); ctx.fill();
+
+    // Dotted circle guides
+    ctx.strokeStyle=`rgba(229,130,150,0.8)`; ctx.lineWidth=1.5; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.arc(clx+faceW*0.08,cly+faceW*0.05,blR,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(crx-faceW*0.08,cry+faceW*0.05,blR,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    gDot(clx+faceW*0.08, cly+faceW*0.05, 6, 'rgba(255,150,160,0.9)');
+    gDot(crx-faceW*0.08, cry+faceW*0.05, 6, 'rgba(255,150,160,0.9)');
+    drawLabel(W*0.5, cly+faceW*0.22, 'Smile · tap blush on pink zone · blend up', W, H);
+  } else {
+    // Subtle blush zones always visible
+    const [clx2,cly2]=P(lm,234,W,H), [crx2,cry2]=P(lm,454,W,H);
+    const fW2 = Math.abs(lm[454].x-lm[234].x)*W;
+    ctx.strokeStyle='rgba(229,130,150,0.15)'; ctx.lineWidth=1; ctx.setLineDash([2,4]);
+    ctx.beginPath(); ctx.arc(clx2+fW2*0.08,cly2+fW2*0.05,fW2*0.18,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(crx2-fW2*0.08,cry2+fW2*0.05,fW2*0.18,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ── LIPS guide ───────────────────────────────────────────────────────────
+  const lipActive = step === 'lips';
+  const lipCol = lipActive ? `rgba(210,80,80,${0.92+Math.sin(t*3)*0.06})` : 'rgba(210,100,90,0.3)';
+  const lipLw  = lipActive ? 3.0 : 1.2;
+  polyC(lm, I_LIPS,  W, H, lipCol, lipLw);
+  polyC(lm, I_LIPSI, W, H, lipActive?'rgba(255,140,120,0.65)':'rgba(255,140,120,0.15)', lipActive?1.5:0.8, [2,3]);
+  if (lipActive) {
+    fillPoly(lm, I_LIPS, W, H, 'rgba(210,80,70,0.15)');
+    // Cupid's bow highlight
+    gDot(...P(lm,0,W,H),   9, 'rgba(255,200,190,0.95)');
+    gDot(...P(lm,61,W,H),  8, 'rgba(210,80,80,0.9)');
+    gDot(...P(lm,291,W,H), 8, 'rgba(210,80,80,0.9)');
+    // Lip center dot
+    gDot(...P(lm,13,W,H),  7, 'rgba(255,180,160,0.8)');
+    drawLabel(W*0.5, lm[152].y*H - 25, 'Line just outside lip edge · fill inward', W, H);
+  }
+
+  // ── Active zone label at top ─────────────────────────────────────────────
+  if (step) {
+    const labels = { eyes:'👁 Eyes', brows:'✏ Brows', contour:'🏔 Contour', blush:'🌸 Blush', lips:'💋 Lips' };
+    drawLabel(W*0.5, 32, `GUIDE: ${labels[step]||step}`, W, H);
+  }
+}
+
+// ── SHARED HELPER: cheekbone arcs ─────────────────────────────────────────
+function drawCheekArcs(lm, W, H, color, lw, dash) {
+  const [clx,cly] = P(lm,234,W,H), [crx,cry] = P(lm,454,W,H);
+  const [nx, ny]  = P(lm,4,  W,H);
+  const [chinx,chiny] = P(lm,152,W,H);
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash||[]);
+  ctx.beginPath();
+  ctx.moveTo(clx+(nx-clx)*0.28, cly+(ny-cly)*0.62);
+  ctx.quadraticCurveTo(clx+(nx-clx)*0.1, cly+(chiny-cly)*0.5, chinx+(clx-chinx)*0.38, chiny-(chiny-cly)*0.1);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(crx+(nx-crx)*0.28, cry+(ny-cry)*0.62);
+  ctx.quadraticCurveTo(crx+(nx-crx)*0.1, cry+(chiny-cry)*0.5, chinx+(crx-chinx)*0.38, chiny-(chiny-cry)*0.1);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ── SHARED HELPER: nose shadow guide ─────────────────────────────────────
+function drawNoseShadow(lm, W, H, active) {
+  const alpha = active ? 0.65 : 0.2;
+  const [n129x,n129y]=P(lm,129,W,H), [n49x,n49y]=P(lm,49,W,H);
+  const [n358x,n358y]=P(lm,358,W,H), [n279x,n279y]=P(lm,279,W,H);
+  ctx.strokeStyle=`rgba(150,100,50,${alpha})`; ctx.lineWidth=active?2:1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(n129x,n129y); ctx.lineTo(n49x,n49y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(n358x,n358y); ctx.lineTo(n279x,n279y); ctx.stroke();
+}
+
+// ── SHARED HELPER: floating instruction label ─────────────────────────────
+function drawLabel(cx, cy, text, W, H) {
+  ctx.save();
+  ctx.font = 'bold 11px Space Grotesk, sans-serif';
+  const tw  = ctx.measureText(text).width;
+  const pad = 10;
+  ctx.fillStyle = 'rgba(8,8,8,0.65)';
+  roundRectCtx(ctx, cx-tw/2-pad, cy-10, tw+pad*2, 22, 11);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, cx, cy+1);
+  ctx.restore();
+}
+function roundRectCtx(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();}
 
 // ── LIVE SCORE ────────────────────────────────────────────────────────────
 function liveScore(lm) {
