@@ -73,6 +73,7 @@ function launchApp() {
   document.getElementById('bottomNav').style.display = 'flex';
   syncGamebar();
   updateProfileUI();
+  initFaceMesh();
   initCamera();
 
   // Personalised greeting after short delay
@@ -89,6 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bottomNav').style.display = 'flex';
     syncGamebar();
     updateProfileUI();
+    initFaceMesh();
     initCamera();
 
     setTimeout(() => {
@@ -131,35 +133,69 @@ function bumpStreak() {
   }
 }
 
-// ── MEDIAPIPE ─────────────────────────────────────────────────────────────
-const faceMesh = new FaceMesh({
-  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
-});
-faceMesh.setOptions({
-  maxNumFaces: 1,
-  refineLandmarks: true,
-  minDetectionConfidence: 0.55,
-  minTrackingConfidence: 0.55
-});
-faceMesh.onResults(onResults);
+// ── MEDIAPIPE + CAMERA ───────────────────────────────────────────────────
+// faceMesh initialized lazily so it doesn't crash if CDN loads slow
+let faceMesh = null;
+let _loopRunning = false;
 
-// ── CAMERA ────────────────────────────────────────────────────────────────
+function initFaceMesh(cb) {
+  // Wait until FaceMesh class is available (CDN may still be loading)
+  if (typeof FaceMesh === 'undefined') {
+    setTimeout(() => initFaceMesh(cb), 200);
+    return;
+  }
+  try {
+    faceMesh = new FaceMesh({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
+    });
+    faceMesh.setOptions({
+      maxNumFaces: 1, refineLandmarks: true,
+      minDetectionConfidence: 0.55, minTrackingConfidence: 0.55
+    });
+    faceMesh.onResults(onResults);
+    if (cb) cb();
+  } catch(e) {
+    console.warn('FaceMesh init error:', e);
+    setTimeout(() => initFaceMesh(cb), 500);
+  }
+}
+
 async function initCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
+    // Try front camera with fallback
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+    } catch {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
+
     videoEl.srcObject = stream;
-    videoEl.onloadedmetadata = () => {
+
+    const onReady = () => {
+      videoEl.play().catch(() => {});
       camPH.classList.add('hidden');
       arPill.classList.add('visible');
       resizeC();
       scanBtn.disabled = false;
-      loop();
+      if (!_loopRunning) { _loopRunning = true; loop(); }
     };
-  } catch {
-    camPH.querySelector('p').textContent = 'Camera access denied. Please allow and refresh.';
+
+    videoEl.onloadedmetadata = onReady;
+
+    // Android fallback: onloadedmetadata sometimes never fires
+    setTimeout(() => {
+      if (videoEl.readyState >= 1) onReady();
+    }, 2000);
+
+  } catch(err) {
+    const msg = err.name === 'NotAllowedError'
+      ? '🔒 Camera blocked — tap the lock icon in address bar and allow camera'
+      : '📷 Camera error: ' + err.name + '. Please refresh.';
+    camPH.querySelector('p').textContent = msg;
   }
 }
 
@@ -171,7 +207,9 @@ function resizeC() {
 }
 
 async function loop() {
-  if (videoEl.readyState >= 2) await faceMesh.send({ image: videoEl });
+  if (videoEl.readyState >= 2 && faceMesh) {
+    try { await faceMesh.send({ image: videoEl }); } catch {}
+  }
   requestAnimationFrame(loop);
 }
 
